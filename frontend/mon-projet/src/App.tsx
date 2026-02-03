@@ -1,36 +1,26 @@
-import { useState, useEffect } from "react";
 
-import type { Album } from "./models/models";
-import "./App.css";
 
-function App() {
-  const [albums, setAlbums] = useState<Album[]>([]);
+import { useState } from 'react'
+import './App.css'
+import './index.css'
 
-  useEffect(() => {
-    fetch("http://127.0.0.1:8000/album")
-      .then((res) => res.json())
-      .then((data) => setAlbums(data));
-  }, []);
+import Header from './components/Header'
+import Accueil from './accueil'
+import DetailCompte from './detail_compte'
+
+type Page = 'acceuil' | 'detail_compte'
+
+function App(): JSX.Element {
+  const [page, setPage] = useState<Page>('acceuil')
 
   return (
     <>
-      <div className="App">
-        <h1>Ma Collection d'Albums</h1>
-        <div className="album-list">
-          {albums.length > 0 ? (
-            albums.map((item, index) => (
-              <div key={index} className="album-card">
-                {/* Adapte les noms (item.title, item.artist) selon ta base SQL */}
-                <h3>{item.album_title || "Titre inconnu"}</h3>
-              </div>
-            ))
-          ) : (
-            <p>Chargement des albums...</p>
-          )}
-        </div>
-      </div>
+      <Header onNavigate={setPage} />
+
+      {page === 'acceuil' && <Accueil />}
+      {page === 'detail_compte' && <DetailCompte />}
     </>
-  );
+  )
 }
 
-export default App;
+export default App
