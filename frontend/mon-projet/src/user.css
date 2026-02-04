@@ -9,25 +9,51 @@
 }
 
 .titre {
+    padding-right: 10px;
     font-weight: 600;
     font-size: 14px;
     margin-bottom: 6px;
-    width: 200px;
+    width: max-content;
     color: #333;
 }
 
 .input-text {
-    width: 100%;
+    width: auto;
     padding: 10px 14px;
-    border-radius: 10px;
-    border: 1px solid #dcdcdc;
-    background: #f7f7f7;
+    margin-right: 20px;
+    border: none;
+    background: white;
     font-size: 14px;
     color: #444;
 }
 
 .input-text:read-only {
     cursor: default;
+}
+
+#email {
+    font-weight: bold;
+    font-size: 28px;
+    text-decoration: underline;
+}
+
+.id {
+    color: #bbbbbb;
+    font-size: 16px;
+}
+
+#id {
+    margin-bottom: 8px;
+}
+
+.password {
+    font-size: 16px;
+}
+
+.section {
+    display: flex;
+    align-items: center;
+    padding: 10px;
 }
 
 .principal,
@@ -38,25 +64,30 @@
 }
 
 .principal {
-    padding-bottom: 50px;
-}
-
-.section {
     display: flex;
+    flex-direction: row;
     align-items: center;
-    gap: 10px;
+    padding-bottom: 10px;
 }
 
-.image-edit {
-    width: 20px;
-    height: 20px;
+#image-edit {
+    width: 25px;
+    height: 25px;
     cursor: pointer;
     opacity: 0.7;
     transition: 0.2s;
 }
 
-.image-edit:hover {
+#image-edit:hover {
     opacity: 1;
+}
+
+#image-profil {
+    width: 150px;
+    height: 150px;
+    cursor: pointer;
+    opacity: 0.7;
+    transition: 0.2s;
 }
 
 button {
@@ -92,9 +123,15 @@ button {
 #bouton-user {
     background-color: #ffffff;
     color: black;
-    border: 2px solid black;
+    border: 1.5px solid black;
 }
 
 #bouton-user:hover {
     background-color: #dddddd;
+}
+
+#bouton-footer {
+    display: flex;
+    justify-content: center;
+    margin: 20px;
 }
