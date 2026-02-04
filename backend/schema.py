@@ -1,6 +1,10 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr
 from typing import List, Optional
 from datetime import date, datetime
+
+##########################################
+##             SCHÉMAS GET              ##
+##########################################
 
 # ==================== Artist Schemas ====================
 class ArtistBase(BaseModel):
@@ -102,3 +106,86 @@ class Playlist(PlaylistBase):
     class Config:
         from_attributes = True
     
+
+##########################################
+##             SCHÉMAS POST             ##
+##########################################
+
+
+# ==================== User Schemas ====================
+
+class UserCreate(BaseModel):
+    email: EmailStr
+    login: str
+    password: str
+    pseudo: Optional[str] = None
+    gender: Optional[str] = None
+    birth_year: Optional[date] = None
+    situation_name: Optional[str] = None
+    frequency_interval: Optional[str] = None
+
+# ==================== Playlist Schemas =================
+
+class PlaylistCreate(BaseModel):
+    playlist_name: str
+    user_id: int
+
+# ==================== ListeningHistory Schemas =========
+
+class ListeningHistoryCreate(BaseModel):
+    user_id: int
+    playlist_id: int
+
+# ==================== UserTrackListening Schemas =======
+
+class UserTrackListeningCreate(BaseModel):
+    user_id: int
+    track_id: int
+
+# ==================== UserAlbumListening Schemas =======
+
+class UserAlbumListeningCreate(BaseModel):
+    user_id: int
+    album_id: int
+
+# ==================== UserPlaylistListening Schemas ====
+
+class UserPlaylistListeningCreate(BaseModel):
+    user_id: int
+    playlist_id: int
+
+# ==================== PlaylistUserFavorite Schemas =====
+
+class PlaylistUserFavoriteCreate(BaseModel):
+    user_id: int
+    playlist_id: int
+
+# ==================== TrackUserFavorite Schemas ========
+
+class TrackUserFavoriteCreate(BaseModel):
+    user_id: int
+    track_id: int
+
+# ==================== UserArtistFavorite Schemas =======
+
+class UserArtistFavoriteCreate(BaseModel):
+    artist_id: int
+    user_id: int
+
+# ==================== UserAlbumFavorite Schemas ========
+
+class UserAlbumFavoriteCreate(BaseModel):
+    user_id: int
+    album_id: int
+
+# ==================== PlaylistUser Schemas =============
+
+class PlaylistUserCreate(BaseModel):
+    user_id: int
+    playlist_id: int
+
+# ==================== PlaylistTrack Schemas ============
+
+class PlaylistTrackCreate(BaseModel):
+    playlist_id: int
+    track_id: int
