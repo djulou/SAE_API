@@ -4,6 +4,8 @@ from sqlalchemy import (
     ForeignKey, MetaData, func, text
 )
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
+from pydantic import BaseModel, EmailStr
+from datetime import date, datetime
 
 # Configuration du schéma "sae" par défaut
 metadata_obj = MetaData(schema="sae")
@@ -380,3 +382,19 @@ class ViewFavoriteListens(Base):
     album_favorites: Mapped[Optional[int]] = mapped_column(Integer)
     playlist_listens: Mapped[Optional[int]] = mapped_column(Integer)
     playlist_favorites: Mapped[Optional[int]] = mapped_column(Integer)
+
+
+
+class UserCreate(BaseModel):
+    email: EmailStr
+    login: str
+    password: str
+    pseudo: Optional[str] = None
+    gender: Optional[str] = None
+    birth_year: Optional[date] = None
+    situation_name: Optional[str] = None
+    frequency_interval: Optional[str] = None
+
+class PlaylistCreate(BaseModel):
+    playlist_name: str
+    user_id: int

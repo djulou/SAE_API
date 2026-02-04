@@ -1,0 +1,26 @@
+button {
+    padding: 12px 18px;
+    border-radius: 10px;
+    border: none;
+    color: white;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+#deconnecter {
+    background: #505050;
+}
+
+#deconnecter:hover {
+    background: #707070;
+}
+
+/* Boutons secondaires */
+#supprimer {
+    background: #ff4d4d;
+}
+
+#supprimer:hover {
+    background: #e04444;
+}
