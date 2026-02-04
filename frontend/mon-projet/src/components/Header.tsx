@@ -2,7 +2,7 @@ import Logo from "../assets/logo.png"
 import icon_user from "../assets/icon_user.svg"
 
 
-type Page = 'acceuil' | 'detail_compte'
+type Page = 'acceuil' | 'detail_compte'| 'page_installation'
 
 type HeaderProps = {
   onNavigate: (page: Page) => void
@@ -15,6 +15,9 @@ function Header({ onNavigate }: HeaderProps): JSX.Element {
         <img src={Logo} className="logo" alt="site logo" />
       </button>
       <h1>Mon App</h1>
+      <button onClick={() => onNavigate('page_installation')}>
+        <p>installation</p>
+      </button>
 
       <nav>
 
