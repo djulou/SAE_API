@@ -208,6 +208,9 @@ class ListeningHistory(Base):
     playlist_id: Mapped[Optional[int]] = mapped_column(ForeignKey('sae.playlist.playlist_id', ondelete="CASCADE"))
     listened_at: Mapped[DateTime] = mapped_column(DateTime, server_default=func.now())
 
+    # Relations
+    playlist = relationship("Playlist")
+
 # =================================================================================
 # |-                        Relations (Tables de liaison)
 # =================================================================================
