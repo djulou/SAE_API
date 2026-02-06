@@ -1,19 +1,40 @@
+
+import { useState } from "react"
+
+import Coeur from "./Coeur"
+
+
+
+
 type CarteAlbumProps = {
   title: string
   artist: string
   pochette: string
+  isConnected: boolean
+
 }
 
-function CarteAlbum({ title, artist, pochette }: CarteAlbumProps) {
+function CarteAlbum({ title, artist, pochette, isConnected}: CarteAlbumProps) {
+  const [isFavorite, setIsFavorite] = useState(false)
+  
+    const toggleFavorite = () => {
+      setIsFavorite((prev) => !prev)
+    }
   return (
     <>
-      <div className="carte-chanson">
+      <div className="carte-album" id="carte-album">
         <div className="pochette-wrapper">
           <img
             src={pochette}
             alt={`Pochette de l'album ${title}`}
             className="pochette"
           />
+          <Coeur
+          isFavorite={isFavorite}
+          isConnected={isConnected}
+          toggleFavorite={toggleFavorite}
+          
+        />
         </div>
 
         <div className="description">

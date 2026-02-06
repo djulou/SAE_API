@@ -1,4 +1,4 @@
-function page_installation() {
+function Installation() {
      return (
         <div>
             <h2>Détail du Compte</h2>
@@ -7,7 +7,7 @@ function page_installation() {
     );
     
 }
-export default page_installation;
+export default Installation;
 
 
 

@@ -103,8 +103,10 @@ button:focus-visible {
 }
 
 
-.carte-chanson {
-  width: 180px;
+.carte-chanson,.carte-album,.carte-playlist {
+  position: relative;
+  width: 16em;
+  min-width: 12em;
   background-color: #181818;
   border-radius: 12px;
   padding: 16px;
@@ -113,10 +115,18 @@ button:focus-visible {
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-.carte-chanson:hover {
+.carte-chanson:hover, .carte-album:hover, .carte-playlist:hover {
+  
   transform: translateY(-6px);
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
 }
+
+.carte-playlist>.description>h3 {
+background-color: gold;
+color: #000;
+text-align: center;
+}
+
 
 .pochette-wrapper {
   width: 100%;
@@ -179,4 +189,170 @@ button:focus-visible {
 .footer-copy {
   font-size: 0.8rem;
   opacity: 0.7;
+}
+
+
+.coeur {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  opacity: 1;
+  z-index: 2;
+}
+
+/* cœur blanc */
+.coeur.inactive {
+  filter: drop-shadow(0 0 2px rgba(0, 0, 0, 0.6));
+}
+
+/* cœur rouge */
+.coeur.active {
+  transform: scale(1.1);
+}
+
+/* non connecté */
+.coeur.disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+
+.carousel-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.carousel-container {
+  display: flex;
+  gap: 16px;
+  overflow-x: auto;
+  scroll-behavior: smooth;
+  padding: 8px 0;
+}
+
+.carousel-container::-webkit-scrollbar {
+  display: none;
+}
+
+.carousel-btn {
+  background: rgba(0, 0, 0, 0.6);
+  color: white;
+  border: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.carousel-btn.left {
+  margin-right: 8px;
+}
+
+.carousel-btn.right {
+  margin-left: 8px;
+}
+
+
+.search-bar {
+  margin: 24px 0;
+  display: flex;
+  justify-content: center;
+}
+
+.search-bar input {
+  width: 100%;
+  max-width: 480px;
+  padding: 10px 14px;
+  font-size: 16px;
+  border-radius: 999px;
+  border: 1px solid #ccc;
+}
+/* Page */
+.login-page {
+  min-height: calc(100vh - 160px); /* header + footer */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Carte */
+.login-container {
+  width: 800px;
+  max-width: 95%;
+  padding: 48px;
+  background: #f0f0f0;
+  border: 1px solid #000;
+  border-radius: 10px;
+  font-family: "Inter", sans-serif;
+
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+/* Titre */
+.login-title {
+  font-size: 64px;
+  text-align: center;
+}
+
+/* Champs */
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.login-form label {
+  font-size: 24px;
+  color: rgba(0, 0, 0, 0.7);
+}
+
+.login-form input {
+  height: 60px;
+  background: #d9d9d9;
+  border-radius: 10px;
+  border: none;
+  padding: 0 16px;
+  font-size: 20px;
+}
+
+/* Boutons */
+.login-actions {
+  display: flex;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.btn {
+  flex: 1;
+  height: 48px;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.confirm {
+  background: #19d21f;
+}
+
+.cancel {
+  background: #666;
+  color: white;
+}
+
+/* Contact */
+.contact {
+  text-align: center;
+  font-size: 16px;
 }

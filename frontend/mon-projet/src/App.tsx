@@ -1,28 +1,64 @@
+import { useState } from "react"
+import "./App.css"
+import "./index.css"
+
+import Header from "./components/Header"
+import Footer from "./components/Footer"
+
+import Accueil from "./accueil"
+import DetailCompte from "./detail_compte"
+import PageInstallation from "./installation"
+import Login from "./login"
+import Register from "./register"
 
 
-import { useState } from 'react'
-import './App.css'
-import './index.css'
+import type { Page } from "./types/Page"
 
-import Header from './components/Header'
-import Footer from './components/Footer'
-
-import Accueil from './accueil'
-import DetailCompte from './detail_compte'
-import page_installation from './installation'
-
-type Page = 'acceuil' | 'detail_compte'| 'page_installation'
+// type Page =
+//   | "acceuil"
+//   | "detail_compte"
+//   | "page_installation"
+//   | "login"
+//   | "register"
 
 function App(): JSX.Element {
-  const [page, setPage] = useState<Page>('acceuil')
+  const [page, setPage] = useState<Page>("acceuil")
+
+  // 🔐 état de connexion
+  const [isConnected, setIsConnected] = useState<boolean>(false)
 
   return (
     <>
-      <Header onNavigate={setPage} />
+      <Header onNavigate={setPage} isConnected={isConnected} />
 
-      {page === 'acceuil' && <Accueil />}
-      {page === 'detail_compte' && <DetailCompte />}
-      {page === 'page_installation' && <page_installation />}
+      {page === "acceuil" && <Accueil isConnected= {isConnected} />}
+
+      {page === "detail_compte" && (
+        isConnected ? <DetailCompte /> : setPage("login")
+      )}
+
+      {page === "page_installation" && <PageInstallation />}
+
+      {page === "login" && (
+        <Login
+          onLogin={() => {
+            setIsConnected(true)
+            setPage("acceuil")
+          }}
+          onRegister={() => setPage("register")}
+        />
+      )}
+
+      {page === "register" && (
+        <Register
+          onRegister={() => {
+            setIsConnected(true)
+            setPage("acceuil")
+          }}
+          onCancel={() => setPage("login")}
+        />
+      )}
+
       <Footer onNavigate={setPage} />
     </>
   )
