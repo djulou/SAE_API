@@ -82,7 +82,7 @@ def get_all_track(db: Session = Depends(get_db)):
 
 @app.get("/user/{email}")
 def get_user_by_email(email: str, db: Session = Depends(get_db)):
-    user = db.query(User).filter(User.user_email == email).first()
+    user = db.query(User).filter(User.email == email).first()
     
     if not user:
         raise HTTPException(status_code=404, detail="Utilisateur non trouvé")
@@ -412,6 +412,106 @@ def create_playlist_track(playlist_track_data: PlaylistTrackCreate, db: Session 
     db.refresh(new_playlist_track)
     
     return new_playlist_track
+
+
+###########################################
+##              DELETE                   ##
+###########################################
+
+@app.delete("/user/{user_id}", status_code=200)
+def anonymize_user(user_id: int, db: Session = Depends(get_db)):
+    """
+    Anonymise les données personnelles d'un utilisateur (RGPD - Droit à l'oubli).
+    Les statistiques d'écoute sont conservées de manière anonyme.
+    """
+    user = db.query(User).filter(User.user_id == user_id).first()
+    
+    if not user:
+        raise HTTPException(status_code=404, detail="Utilisateur non trouvé")
+    
+    # Anonymisation des données identifiables
+    user.email = f"deleted_user_{user_id}@anonyme.fr"
+    user.user_login = f"deleted_user_{user_id}"
+    user.pseudo = f"Utilisateur supprimé"
+    user.user_mdp = "ACCOUNT_DELETED" 
+    user.image = None
+    user.birth_year = None
+    
+    db.commit()
+    
+    return {"message": "Données personnelles anonymisées conformément au RGPD"}
+
+@app.delete("/users/{user_id}/favorites/tracks/{track_id}", status_code=200)
+def remove_favorite_track(user_id: int, track_id: int, db: Session = Depends(get_db)):
+    """Retire une piste des favoris de l'utilisateur."""
+    favorite = db.query(TrackUserFavorite).filter(
+        TrackUserFavorite.user_id == user_id,
+        TrackUserFavorite.track_id == track_id
+    ).first()
+    
+    if not favorite:
+        raise HTTPException(status_code=404, detail="Favori non trouvé")
+    
+    db.delete(favorite)
+    db.commit()
+    return {"message": "Titre retiré des favoris"}
+
+@app.delete("/users/{user_id}/favorites/artists/{artist_id}", status_code=200)
+def remove_favorite_artist(user_id: int, artist_id: int, db: Session = Depends(get_db)):
+    """Retire un artiste des favoris de l'utilisateur."""
+    favorite = db.query(UserArtistFavorite).filter(
+        UserArtistFavorite.user_id == user_id,
+        UserArtistFavorite.artist_id == artist_id
+    ).first()
+    
+    if not favorite:
+        raise HTTPException(status_code=404, detail="Favori non trouvé")
+    
+    db.delete(favorite)
+    db.commit()
+    return {"message": "Artiste retiré des favoris"}
+
+@app.delete("/users/{user_id}/favorites/albums/{album_id}", status_code=200)
+def remove_favorite_album(user_id: int, album_id: int, db: Session = Depends(get_db)):
+    """Retire un album des favoris de l'utilisateur."""
+    favorite = db.query(UserAlbumFavorite).filter(
+        UserAlbumFavorite.user_id == user_id,
+        UserAlbumFavorite.album_id == album_id
+    ).first()
+    
+    if not favorite:
+        raise HTTPException(status_code=404, detail="Favori non trouvé")
+    
+    db.delete(favorite)
+    db.commit()
+    return {"message": "Album retiré des favoris"}
+
+@app.delete("/playlists/{playlist_id}", status_code=200)
+def delete_playlist(playlist_id: int, db: Session = Depends(get_db)):
+    """Supprime une playlist (et ses liens avec les pistes via CASCADE)."""
+    playlist = db.query(Playlist).filter(Playlist.playlist_id == playlist_id).first()
+    
+    if not playlist:
+        raise HTTPException(status_code=404, detail="Playlist non trouvée")
+    
+    db.delete(playlist)
+    db.commit()
+    return {"message": "Playlist supprimée"}
+
+@app.delete("/playlists/{playlist_id}/tracks/{track_id}", status_code=200)
+def remove_track_from_playlist(playlist_id: int, track_id: int, db: Session = Depends(get_db)):
+    """Retire une piste d'une playlist."""
+    link = db.query(PlaylistTrack).filter(
+        PlaylistTrack.playlist_id == playlist_id,
+        PlaylistTrack.track_id == track_id
+    ).first()
+    
+    if not link:
+        raise HTTPException(status_code=404, detail="Piste non présente dans cette playlist")
+    
+    db.delete(link)
+    db.commit()
+    return {"message": "Piste retirée de la playlist"}
 
 
 ###########################################
