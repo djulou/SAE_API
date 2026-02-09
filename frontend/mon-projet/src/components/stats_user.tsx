@@ -24,21 +24,31 @@ type StatsUserProps = {
 
 function StatsUser({favoris, playlists, track_listen, genre_listen}: StatsUserProps) {
     return (
-        <section className="stat1" >
-            <div className="stat-simple">
-                <h2 className="souligner">Nombre de musique en favoris : </h2>
-                <div className="chiffre-image">
-                    <p className="chiffre-stat">{favoris}</p>
-                    <img src={coeur} id="image-favoris" alt="Image favoris"></img>
+        <section>
+            <div className="stats" >
+                <div className="stat-simple">
+                    <h2 className="souligner">Nombre de musique en favoris : </h2>
+                    <div className="chiffre-image">
+                        <p className="chiffre-stat">{favoris}</p>
+                        {/* <img src={coeur} id="image-favoris" alt="Image favoris"></img> */}
+                    </div>
+                </div>
+                <div className="stat-simple">
+                    <h2 className="souligner">Nombre de playlists créées : </h2>
+                    <div className="chiffre-image">
+                        <p className="chiffre-stat">{playlists}</p>
+                        {/* <img src={playlist} id="image-playlist" alt="Image playlist"></img> */}
+                    </div>
                 </div>
             </div>
-            <div className="stat-simple">
-                <h2 className="souligner">Nombre de playlists créées : </h2>
-                <div className="chiffre-image">
-                    <p className="chiffre-stat">{playlists}</p>
-                    <img src={playlist} id="image-playlist" alt="Image playlist"></img>
-                </div>
+        <div className="stats">
+            <div className="stat-graph">
+                <h2 className="souligner">Artistes les plus écoutés : </h2>
             </div>
+            <div className="stat-graph"> 
+                <h2 className="souligner">Genres les plus écoutés : </h2>
+            </div>
+        </div>
         </section>
     )
 }
