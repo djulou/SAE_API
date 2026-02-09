@@ -210,21 +210,44 @@ class PlaylistTrackCreate(BaseModel):
     playlist_id: int
     track_id: int
 
+# ==================== UserTrackListening Schemas ============
+
+class UserTrackListeningCreate(BaseModel):
+    track_id: int
+
 
 ##########################################
 ##            SCHÉMAS PATCH             ##
 ##########################################
 
+# ==================== User Schemas ============
+
 class UserUpdate(BaseModel):
+    current_password: str
+
     image: Optional[str] = None
     pseudo: Optional[str] = None
-    user_mdp: Optional[str] = None
+    new_mdp: Optional[str] = None
     user_gender: Optional[str] = None # char
     situation_name: Optional[str] = None
     frequency_interval: Optional[str] = None
 
+# ==================== Playlist Schemas ============
+
 class PlaylistUpdate(BaseModel):
-    playlist_id: Optional[int]
     playlist_name: Optional[str]
-    playlist_listens: Optional[int]
     
+# ==================== UserTrackListening Schemas ============
+
+class UserTrackListeningUpdate(BaseModel):
+    nb_listening: int
+
+# ==================== UserAlbumListening Schemas ============
+
+class UserAlbumListeningUpdate(BaseModel):
+    nb_listening: int
+
+# ==================== UserPlaylistListening Schemas ============
+
+class UserPlaylistListeningUpdate(BaseModel):
+    nb_listening: int
