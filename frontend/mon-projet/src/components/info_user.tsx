@@ -1,56 +1,74 @@
-import coeur from "../assets/coeur.png"
-import playlist from "../assets/playlist.png"
+import {useState} from "react"
 
+import image_edit from "../assets/edit.png"
+import profil from "../assets/pfp.png"
 
-type Track = {
-    user_id: number
-    track_id: number
-    nb_listening: number
-}
-
-type Genre = {
-    user_id: number
-    genre_id: number
-    genre_rate: number
-}
-
-type StatsUserProps = {
-    favoris: number
-    playlists: number
-    track_listen: Track[]
-    genre_listen: Genre[]
+type InfoUserProps = {
+  email: string
+  id: string
+  password: string
 }
 
 
-function StatsUser({favoris, playlists, track_listen, genre_listen}: StatsUserProps) {
+function InfoUser({email, id, password}: InfoUserProps) {
+    const [emailValue, setEmailValue] = useState(email)
+    const [passwordValue, setPasswordValue] = useState(password)
+
+    const [editEmail, setEditEmail] = useState(false)
+    const [editPassword, setEditPassword] = useState(false)
+
     return (
-        <section>
-            <div className="stats" >
-                <div className="stat-simple">
-                    <h2 className="souligner">Nombre de musique en favoris : </h2>
-                    <div className="chiffre-image">
-                        <p className="chiffre-stat">{favoris}</p>
-                        {/* <img src={coeur} id="image-favoris" alt="Image favoris"></img> */}
+        <section className="info-user">
+            <div className="principal">
+                <img src={profil} id="image-profil" alt="Image de profil"></img>
+                <div className="identification">
+                    <div className="section">
+                        <label htmlFor="email" className="titre"></label>
+                        <input
+                            id="email"
+                            type="text"
+                            className="input-text"
+                            value={emailValue}
+                            name="email"
+                            readOnly={!editEmail}
+                            onChange={(e) => setEmailValue(e.target.value)}
+                            onBlur={() => setEditEmail(false)}
+                        />
+                        <img src={image_edit} id="image-edit" alt="Image de modification" onClick={() => setEditEmail(true)}></img>
+                    </div>
+
+                    <div className="section">
+                        <label htmlFor="id" className="titre id"></label>
+                        <input
+                            id="id"
+                            type="text"
+                            className="input-text id"
+                            value={id}
+                            name="id"
+                            readOnly
+                        />
                     </div>
                 </div>
-                <div className="stat-simple">
-                    <h2 className="souligner">Nombre de playlists créées : </h2>
-                    <div className="chiffre-image">
-                        <p className="chiffre-stat">{playlists}</p>
-                        {/* <img src={playlist} id="image-playlist" alt="Image playlist"></img> */}
-                    </div>
+            </div>
+
+            <div className="secondaire">
+                <div className="section">
+                    <label htmlFor="password" className="titre password">Mot de passe : </label>
+                    <input
+                        id="password"
+                        type="password"
+                        className="input-text password"
+                        value={passwordValue}
+                        name="password"
+                        readOnly={!editPassword}
+                        onChange={(e) => setPasswordValue(e.target.value)}
+                        onBlur={() => setEditPassword(false)}
+                    />
+                    <img src={image_edit} id="image-edit" alt="Image de modification" onClick={() => setEditPassword(true)}></img>
                 </div>
             </div>
-        <div className="stats">
-            <div className="stat-graph">
-                <h2 className="souligner">Artistes les plus écoutés : </h2>
-            </div>
-            <div className="stat-graph"> 
-                <h2 className="souligner">Genres les plus écoutés : </h2>
-            </div>
-        </div>
         </section>
     )
 }
 
-export default StatsUser
+export default InfoUser
