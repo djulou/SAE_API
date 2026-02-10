@@ -193,7 +193,7 @@ def get_recommender():
             return None
     return _recommender
 
-@app.get("/users/{user_id}/recommendations")
+@app.get("/users/gru_recommendations")
 def get_user_recommendations(
     limit: int = 10,
     db: Session = Depends(get_db),
@@ -234,7 +234,7 @@ def get_user_recommendations(
     
     return {"recommended_track_ids": track_ids}
 
-@app.get("/users/recommendations/detailed", response_model=List[schema.Track])
+@app.get("/users/gru_recommendations/detailed", response_model=List[schema.Track])
 def get_user_recommendations_detailed(
     limit: int = 10,
     db: Session = Depends(get_db),
