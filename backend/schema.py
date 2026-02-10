@@ -215,6 +215,11 @@ class PlaylistTrackCreate(BaseModel):
 class UserTrackListeningCreate(BaseModel):
     track_id: int
 
+# ==================== SearchHistory Schemas ============
+
+class SearchHistoryCreate(BaseModel):
+    history_query: str
+
 
 ##########################################
 ##            SCHÉMAS PATCH             ##

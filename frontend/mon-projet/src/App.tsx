@@ -15,14 +15,14 @@ import Register from "./register"
 import type { Page } from "./types/Page"
 
 // type Page =
-//   | "acceuil"
+//   | "accueil"
 //   | "detail_compte"
 //   | "page_installation"
 //   | "login"
 //   | "register"
 
 function App(): JSX.Element {
-  const [page, setPage] = useState<Page>("acceuil")
+  const [page, setPage] = useState<Page>("accueil")
 
   // 🔐 état de connexion
   const [isConnected, setIsConnected] = useState<boolean>(false)
@@ -31,7 +31,7 @@ function App(): JSX.Element {
     <>
       <Header onNavigate={setPage} isConnected={isConnected} />
 
-      {page === "acceuil" && <Accueil isConnected= {isConnected} />}
+      {page === "accueil" && <Accueil isConnected= {isConnected} />}
 
       {page === "detail_compte" && (
         isConnected ? <DetailCompte /> : setPage("login")
@@ -43,7 +43,7 @@ function App(): JSX.Element {
         <Login
           onLogin={() => {
             setIsConnected(true)
-            setPage("acceuil")
+            setPage("accueil")
           }}
           onRegister={() => setPage("register")}
         />
@@ -53,7 +53,7 @@ function App(): JSX.Element {
         <Register
           onRegister={() => {
             setIsConnected(true)
-            setPage("acceuil")
+            setPage("accueil")
           }}
           onCancel={() => setPage("login")}
         />

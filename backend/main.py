@@ -17,7 +17,7 @@ import schema
 from schema import (    
     UserCreate, PlaylistCreate, ListeningHistoryCreate, UserAlbumListeningCreate, UserPlaylistListeningCreate,
     PlaylistUserFavoriteCreate, TrackUserFavoriteCreate, UserArtistFavoriteCreate, UserAlbumFavoriteCreate, PlaylistUserCreate,
-    PlaylistTrackCreate, UserTrackListeningCreate,
+    PlaylistTrackCreate, UserTrackListeningCreate, SearchHistoryCreate,
 
     UserUpdate, PlaylistUpdate, UserTrackListeningUpdate, UserAlbumListeningUpdate, UserPlaylistListeningUpdate
 )
@@ -195,7 +195,6 @@ def get_recommender():
 
 @app.get("/users/{user_id}/recommendations")
 def get_user_recommendations(
-    user_id: int, 
     limit: int = 10,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
@@ -204,9 +203,6 @@ def get_user_recommendations(
     Génère des recommandations musicales personnalisées basées sur l'historique de recherche.
     Utilise un modèle GRU + BERT pour l'analyse sémantique.
     """
-    
-    if user_id != current_user.user_id:
-        raise HTTPException(status_code=403, detail="Vous ne pouvez accéder qu'à vos propres recommandations")
     
     # Récupération du recommandeur
     recommender = get_recommender()
@@ -218,7 +214,7 @@ def get_user_recommendations(
     
     # Récupération des 20 dernières recherches (du plus récent au plus ancien)
     search_results = db.query(SearchHistory.history_query).filter(
-        SearchHistory.user_id == user_id
+        SearchHistory.user_id == current_user.user_id
     ).order_by(
         SearchHistory.history_timestamp.desc()
     ).limit(20).all()
@@ -238,9 +234,8 @@ def get_user_recommendations(
     
     return {"recommended_track_ids": track_ids}
 
-@app.get("/users/{user_id}/recommendations/detailed", response_model=List[schema.Track])
+@app.get("/users/recommendations/detailed", response_model=List[schema.Track])
 def get_user_recommendations_detailed(
-    user_id: int, 
     limit: int = 10,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
@@ -248,15 +243,13 @@ def get_user_recommendations_detailed(
     """
     Version détaillée : Renvoie les objets Track complets (pour affichage playlist direct).
     """
-    if user_id != current_user.user_id:
-        raise HTTPException(status_code=403, detail="Vous ne pouvez accéder qu'à vos propres recommandations")
     
     recommender = get_recommender()
     if recommender is None or not recommender.is_ready:
         raise HTTPException(status_code=503, detail="Service de recommandation indisponible")
     
     search_results = db.query(SearchHistory.history_query).filter(
-        SearchHistory.user_id == user_id
+        SearchHistory.user_id == current_user.user_id
     ).order_by(SearchHistory.history_timestamp.desc()).limit(20).all()
     
     if not search_results:
@@ -445,7 +438,7 @@ def create_playlist_track(playlist_track_data: PlaylistTrackCreate, db: Session 
     return new_playlist_track
 
 @app.post("/userTrackListening", status_code=201)
-def create_user_track_listening_create(user_track_listening_data: UserTrackListeningCreate, db: Session = Depends(get_db), current_user: UserTrackListening = Depends(get_current_user)):
+def create_user_track_listening(user_track_listening_data: UserTrackListeningCreate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     
     user_track_listening_dict = user_track_listening_data.model_dump()
     
@@ -458,6 +451,21 @@ def create_user_track_listening_create(user_track_listening_data: UserTrackListe
     db.refresh(new_user_track_listening_create)
     
     return new_user_track_listening_create
+
+@app.post("/SearchHistory", status_code=201)
+def create_search_history(search_history_data: SearchHistoryCreate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    
+    search_history_dict = search_history_data.model_dump()
+    
+    search_history_dict["user_id"] = current_user.user_id
+    
+    new_search_history_create = SearchHistory(**search_history_dict)
+    
+    db.add(new_search_history_create)
+    db.commit()
+    db.refresh(new_search_history_create)
+    
+    return new_search_history_create
 
 
 ####### PATCH ##
