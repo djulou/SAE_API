@@ -152,24 +152,9 @@ def get_all_track(db: Session = Depends(get_db)):
     return db.query(Playlist).all()
 
 
-@app.get("/user/{email}")
-def get_user_by_email(email: str, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    user = db.query(User).filter(User.email == email).first()
-    
-    if not user:
-        raise HTTPException(status_code=404, detail="Utilisateur non trouvé")
-    
-    if user.user_id != current_user.user_id:
-        raise HTTPException(status_code=403, detail="Vous ne pouvez accéder qu'à votre propre compte")
-    
-    return user
-
-@app.get("/user/{user_id}")
-def get_user_by_id(user_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    user = db.query(User).filter(User.user_id == user_id).first()
-    
-    if not user:
-        raise HTTPException(status_code=404, detail="Utilisateur non trouvé")
+@app.get("/user")
+def get_user_by_id(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    user = db.query(User).filter(User.user_id == current_user.user_id).first()
     
     if user.user_id != current_user.user_id:
         raise HTTPException(status_code=403, detail="Vous ne pouvez accéder qu'à votre propre compte")
@@ -568,23 +553,20 @@ def update_user_playlist_listening(playlist_id: int, user_playlist_listening_dat
 
 ####### DELETE ##
 
-@app.delete("/user/{user_id}", status_code=200)
-def anonymize_user(user_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+@app.delete("/user", status_code=200)
+def anonymize_user(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     """
     Anonymise les données personnelles d'un utilisateur (RGPD - Droit à l'oubli).
     Les statistiques d'écoute sont conservées de manière anonyme.
     """
-    user = db.query(User).filter(User.user_id == user_id).first()
+    user = db.query(User).filter(User.user_id == current_user.user_id).first()
     
     if not user:
         raise HTTPException(status_code=404, detail="Utilisateur non trouvé")
-    
-    if user.user_id != current_user.user_id:
-        raise HTTPException(status_code=403, detail="Vous ne pouvez supprimer que votre propre compte")
  
     # Anonymisation des données identifiables
-    user.email = f"deleted_user_{user_id}@anonyme.fr"
-    user.user_login = f"deleted_user_{user_id}"
+    user.email = f"deleted_user_{current_user.user_id}@anonyme.fr"
+    user.user_login = f"deleted_user_{current_user.user_id}"
     user.pseudo = f"Utilisateur supprimé"
     user.user_mdp = "ACCOUNT_DELETED" 
     user.image = None
@@ -594,55 +576,46 @@ def anonymize_user(user_id: int, db: Session = Depends(get_db), current_user: Us
     
     return {"message": "Données personnelles anonymisées conformément au RGPD"}
 
-@app.delete("/users/{user_id}/favorites/tracks/{track_id}", status_code=200)
-def remove_favorite_track(user_id: int, track_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+@app.delete("/users/favorites/tracks/{track_id}", status_code=200)
+def remove_favorite_track(track_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     """Retire une piste des favoris de l'utilisateur."""
     favorite = db.query(TrackUserFavorite).filter(
-        TrackUserFavorite.user_id == user_id,
+        TrackUserFavorite.user_id == current_user.user_id,
         TrackUserFavorite.track_id == track_id
     ).first()
     
     if not favorite:
         raise HTTPException(status_code=404, detail="Favori non trouvé")
     
-    if favorite.user_id != current_user.user_id:
-        raise HTTPException(status_code=403, detail="Vous ne pouvez supprimer que vos propres favoris")
-    
     db.delete(favorite)
     db.commit()
     return {"message": "Titre retiré des favoris"}
 
-@app.delete("/users/{user_id}/favorites/artists/{artist_id}", status_code=200)
-def remove_favorite_artist(user_id: int, artist_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+@app.delete("/users/favorites/artists/{artist_id}", status_code=200)
+def remove_favorite_artist(artist_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     """Retire un artiste des favoris de l'utilisateur."""
     favorite = db.query(UserArtistFavorite).filter(
-        UserArtistFavorite.user_id == user_id,
+        UserArtistFavorite.user_id == current_user.user_id,
         UserArtistFavorite.artist_id == artist_id
     ).first()
     
     if not favorite:
         raise HTTPException(status_code=404, detail="Favori non trouvé")
     
-    if favorite.user_id != current_user.user_id:
-        raise HTTPException(status_code=403, detail="Vous ne pouvez supprimer que vos propres favoris")
-    
     db.delete(favorite)
     db.commit()
     return {"message": "Artiste retiré des favoris"}
 
-@app.delete("/users/{user_id}/favorites/albums/{album_id}", status_code=200)
-def remove_favorite_album(user_id: int, album_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+@app.delete("/users/favorites/albums/{album_id}", status_code=200)
+def remove_favorite_album(album_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     """Retire un album des favoris de l'utilisateur."""
     favorite = db.query(UserAlbumFavorite).filter(
-        UserAlbumFavorite.user_id == user_id,
+        UserAlbumFavorite.user_id == current_user.user_id,
         UserAlbumFavorite.album_id == album_id
     ).first()
     
     if not favorite:
         raise HTTPException(status_code=404, detail="Favori non trouvé")
-    
-    if favorite.user_id != current_user.user_id:
-        raise HTTPException(status_code=403, detail="Vous ne pouvez supprimer que vos propres favoris")
     
     db.delete(favorite)
     db.commit()
@@ -664,7 +637,7 @@ def delete_playlist(playlist_id: int, db: Session = Depends(get_db), current_use
     return {"message": "Playlist supprimée"}
 
 @app.delete("/playlists/{playlist_id}/tracks/{track_id}", status_code=200)
-def remove_track_from_playlist(playlist_id: int, track_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+def remove_track_from_playlist(playlist_id: int, track_id: int, db: Session = Depends(get_db)):
     """Retire une piste d'une playlist."""
     link = db.query(PlaylistTrack).filter(
         PlaylistTrack.playlist_id == playlist_id,
