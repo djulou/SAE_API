@@ -1,5 +1,6 @@
 import { useState } from "react";
-import type {Page} from "./types/Page"
+import type { Page } from "./types/Page"
+import { register } from "./services/authService";
 type Step = 1 | 2 | 3 | 4;
 
 const musicTags = ["Rock", "Pop", "Rap", "Jazz", "Classique"];
@@ -7,12 +8,13 @@ const streamingServices = ["Netflix", "YouTube", "Twitch", "Disney+"];
 
 
 type RegisterProps = {
-  onNavigate: (page: Page) => void
+    onNavigate: (page: Page) => void
 }
 
-export default function Register({onNavigate}:RegisterProps) {
+export default function Register({ onNavigate }: RegisterProps) {
     const [step, setStep] = useState<Step>(1);
     const [name, setName] = useState("");
+    const [loginIdentifier, setLoginIdentifier] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [selectedTags, setSelectedTags] = useState<string[]>([]);
@@ -40,25 +42,42 @@ export default function Register({onNavigate}:RegisterProps) {
         if (step > 1) setStep((prev) => (prev - 1) as Step);
     };
 
-    const handleSubmit = () => {
-        console.log({ name, email, password, selectedTags, selectedServices });
-        alert("Inscription terminée !");
+    const handleSubmit = async () => {
+        try {
+            await register({
+                email: email,
+                user_login: loginIdentifier,
+                user_mdp: password,
+                pseudo: name
+            });
+            alert("Inscription terminée ! Connecte-toi maintenant.");
+            onNavigate("login");
+        } catch (err: any) {
+            alert(err.message || "Erreur lors de l'inscription");
+        }
     };
 
     return (
         <div className="login-page">
-            <div className="login-container">
+            <div className="login-container" style={{ maxWidth: step === 4 ? "500px" : "400px" }}>
                 <h1 className="login-title">Inscription</h1>
 
                 {/* Étape 1 */}
                 {step === 1 && (
                     <div className="login-form">
-                        <label>Nom complet</label>
+                        <label>Pseudo (Nom affiché)</label>
                         <input
                             type="text"
-                            placeholder="Ton nom"
+                            placeholder="Ex: orchestra"
                             value={name}
                             onChange={(e) => setName(e.target.value)}
+                        />
+                        <label>Identifiant de connexion (Unique)</label>
+                        <input
+                            type="text"
+                            placeholder="Ex: orchest_ra"
+                            value={loginIdentifier}
+                            onChange={(e) => setLoginIdentifier(e.target.value)}
                         />
                         <label>Email</label>
                         <input
@@ -120,7 +139,8 @@ export default function Register({onNavigate}:RegisterProps) {
                 {step === 4 && (
                     <div className="login-form">
                         <label>Vérifie tes choix :</label>
-                        <p><strong>Nom :</strong> {name}</p>
+                        <p><strong>Nom affiché :</strong> {name}</p>
+                        <p><strong>Identifiant :</strong> {loginIdentifier}</p>
                         <p><strong>Email :</strong> {email}</p>
                         <p><strong>Genres :</strong> {selectedTags.join(", ")}</p>
                         <p><strong>Services :</strong> {selectedServices.join(", ")}</p>
