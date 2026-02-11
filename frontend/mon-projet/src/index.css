@@ -206,13 +206,14 @@ button:focus-visible {
 
 /* Base commune */
 .btn-auth {
-  padding: 0.5em 1.2em;
-  font-size: 0.95rem;
-  font-weight: 500;
-  border-radius: var(--radius-full);
-  cursor: pointer;
-  transition: all 0.2s ease;
-  border: 1px solid transparent;
+    margin: 0.2em;
+	padding: 0.5em 1.2em;
+	font-size: 0.95rem;
+	font-weight: 500;
+	border-radius: var(--radius-full);
+	cursor: pointer;
+	transition: all 0.2s ease;
+	border: 1px solid transparent;
 }
 
 /* Connexion → bouton outline */
@@ -266,6 +267,40 @@ button:focus-visible {
 background-color: gold;
 color: #000;
 text-align: center;
+}
+.carte-chanson>.description {
+	display: flex;
+    justify-content: space-between;
+}
+
+.carte-chanson>.description>div {
+	display: block
+
+}
+
+.btn-plus {
+  padding: 0.3em;
+  background-color: var(--color-primary);
+  border-radius: 50%;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 0.2s ease, background-color 0.2s ease;
+}
+
+.btn-plus svg {
+  stroke: var(--color-bg);
+}
+
+.btn-plus:hover {
+  transform: scale(1.1);
+  background-color: #fbbf24;
+}
+
+.btn-plus:hover svg {
+  stroke: var(--color-text);
 }
 
 
