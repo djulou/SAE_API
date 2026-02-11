@@ -44,9 +44,31 @@ function StatsUser({favoris, playlists, track_listen, genre_listen}: StatsUserPr
         <div className="stats">
             <div className="stat-graph">
                 <h2 className="souligner">Artistes les plus écoutés : </h2>
+                <ul className="stat-list">
+                    {track_listen
+                        .sort((a, b) => b.nb_listening - a.nb_listening)
+                        .map((track) => (
+                            <li key={track.track_id}>
+                                <span>Track {track.track_id}</span>
+                                <span className="value">{track.nb_listening} écoutes</span>
+                            </li>
+                        ))
+                    }
+                </ul>
             </div>
             <div className="stat-graph"> 
                 <h2 className="souligner">Genres les plus écoutés : </h2>
+                <ul className="stat-list">
+                    {genre_listen
+                        .sort((a, b) => b.genre_rate - a.genre_rate)
+                        .map((genre) => (
+                            <li key={genre.genre_id}>
+                                <span>Genre {genre.genre_id}</span>
+                                <span className="value">{(genre.genre_rate * 100).toFixed(1)}%</span>
+                            </li>
+                        ))
+                    }
+                </ul>
             </div>
         </div>
         </section>
