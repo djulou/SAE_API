@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Carousel from "./components/Carousel"
 import CarteChanson from "./components/carte_chanson"
 import CartePlaylist from "./components/carte_playlist"
@@ -14,9 +14,56 @@ type AccueilProps = {
   userId: number | null
 }
 
+interface Track {
+  track_id: number;
+  track_title: string;
+  artist_name: string;
+  album_image_file: string;
+}
+ 
+export default function Accueil( {isConnected = false} : AccueilProps)  {
+  
+  const [tracks, setTracks] = useState<Track[]>([]);
+  const [recoTracks, setRecoTracks] = useState<Track[]>([]);
+  const [loading, setLoading] = useState(true);
 
-export default function Accueil({ isConnected = false, userId }: AccueilProps) {
-  const chansons = getChansons()
+  useEffect(() => {
+    async function loadData() {
+      setLoading(true);
+      try {
+        // 1. Chargement des musiques générales (Public)
+        const resTracks = await fetch("http://127.0.0.1:8000/viewTrack?limit=100");
+        const dataTracks = await resTracks.json();
+        setTracks(dataTracks);
+
+        // 2. Chargement des recommandations (Privé - seulement si connecté)
+        if (isConnected) {
+          const token = localStorage.getItem("token"); // Récupération du token
+          
+          if (token) {
+            const resReco = await fetch("http://127.0.0.1:8000/users/gru_recommendations/detailed?limit=10", {
+              method: "GET",
+              headers: {
+                "Authorization": `Bearer ${token}`, // Envoi du badge d'accès
+                "Content-Type": "application/json"
+              }
+            });
+
+            if (resReco.ok) {
+              const dataReco = await resReco.json();
+              setRecoTracks(dataReco);
+            }
+          }
+        }
+      } catch (error) {
+        console.error("Erreur lors du chargement :", error);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadData();
+  }, [isConnected]);
 
   // État pour la gestion du modal
   const [modalOpen, setModalOpen] = useState(false)
@@ -34,8 +81,6 @@ export default function Accueil({ isConnected = false, userId }: AccueilProps) {
   }))
 
   /* 🔎 Filtres */
-  const chansonsFiltrees = chansons
-
   const playlistsFiltrees = playlists
 
 
@@ -49,36 +94,60 @@ export default function Accueil({ isConnected = false, userId }: AccueilProps) {
 
   return (
     <>
+
       <div className="accueil-layout">
         <nav className="menu-favoris">
-          <ul className="list-aime">
-            <li>Écouté récemment</li>
-            <li>Titres aimés</li>
-            <li>Albums</li>
-            <li>Artistes</li>
-          </ul>
+            <ul className="list-aime">
+                <li>Écouté récemment</li>
+                <li>Titres aimés</li>
+                <li>Albums</li>
+                <li>Artistes</li>
+            </ul>
 
-          <button className="btn-add-playlist" onClick={() => handleAddTrack(null as any)}>
-            Ajouter une Playlist
-          </button>
+            <button className="btn-add-playlist">
+                Ajouter une Playlist
+            </button>
 
           <ul className="list-playlist"></ul>
         </nav>
-        <main className="accueil-content">
+      <main className="accueil-content">
 
-          <h2>Musiques recommandées</h2>
+
+      <h2>Musiques recommandées</h2>
+      {loading ? (
+        <p>Chargement des musiques...</p>
+      ) : (
+        <Carousel>
+          {tracks.map((track) => (
+            <CarteChanson
+              key={track.track_id}
+              title={track.track_title}
+              artist={track.artist_name}
+              // artist={track.artists.map(a => a.artist_name).join(", ")}
+              pochette={track.album_image_file}
+              isConnected={isConnected}
+            />
+          ))}
+        </Carousel>
+      )}
+
+      <h2>Selon vos recherches</h2>
+      {isConnected && recoTracks.length > 0 && (
+        <>
+          <h2>Selon vos recherches</h2>
           <Carousel>
-            {chansonsFiltrees.map((chanson, index) => (
+            {recoTracks.map((track) => (
               <CarteChanson
-                key={index}
-                title={chanson.title}
-                artist={chanson.artist}
-                pochette={chanson.pochette}
+                key={`reco-${track.track_id}`}
+                title={track.track_title}
+                artist={track.artist_name}
+                pochette={track.album_image_file || viteLogo}
                 isConnected={isConnected}
-                onAdd={() => handleAddTrack(index + 1)} // On simule un ID car getChansons renvoie des mocks sans ID
               />
             ))}
           </Carousel>
+        </>
+      )}
 
           <h2>Playlists recommandées</h2>
           <Carousel>
