@@ -22,23 +22,46 @@ interface Track {
 export default function Accueil( {isConnected = false} : AccueilProps)  {
   
   const [tracks, setTracks] = useState<Track[]>([]);
+  const [recoTracks, setRecoTracks] = useState<Track[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    async function loadTracks() {
+    async function loadData() {
+      setLoading(true);
       try {
-        const response = await fetch("http://127.0.0.1:8000/viewTrack?limit=100");
-        const data = await response.json();
-        setTracks(data);
+        // 1. Chargement des musiques générales (Public)
+        const resTracks = await fetch("http://127.0.0.1:8000/viewTrack?limit=100");
+        const dataTracks = await resTracks.json();
+        setTracks(dataTracks);
+
+        // 2. Chargement des recommandations (Privé - seulement si connecté)
+        if (isConnected) {
+          const token = localStorage.getItem("token"); // Récupération du token
+          
+          if (token) {
+            const resReco = await fetch("http://127.0.0.1:8000/users/gru_recommendations/detailed?limit=10", {
+              method: "GET",
+              headers: {
+                "Authorization": `Bearer ${token}`, // Envoi du badge d'accès
+                "Content-Type": "application/json"
+              }
+            });
+
+            if (resReco.ok) {
+              const dataReco = await resReco.json();
+              setRecoTracks(dataReco);
+            }
+          }
+        }
       } catch (error) {
-        console.error("Erreur :", error);
+        console.error("Erreur lors du chargement :", error);
       } finally {
         setLoading(false);
       }
     }
 
-    loadTracks();
-  }, []);
+    loadData();
+  }, [isConnected]);
 
   const playlists: Playlist[] = Array.from({ length: 50 }, () => ({
     title: "Top Disney",
@@ -96,6 +119,24 @@ export default function Accueil( {isConnected = false} : AccueilProps)  {
             />
           ))}
         </Carousel>
+      )}
+
+      <h2>Selon vos recherches</h2>
+      {isConnected && recoTracks.length > 0 && (
+        <>
+          <h2>Selon vos recherches</h2>
+          <Carousel>
+            {recoTracks.map((track) => (
+              <CarteChanson
+                key={`reco-${track.track_id}`}
+                title={track.track_title}
+                artist={track.artist_name}
+                pochette={track.album_image_file || viteLogo}
+                isConnected={isConnected}
+              />
+            ))}
+          </Carousel>
+        </>
       )}
 
       <h2>Playlists recommandées</h2>

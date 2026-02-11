@@ -256,7 +256,7 @@ def get_user_recommendations(
     
     return {"recommended_track_ids": track_ids}
 
-@app.get("/users/gru_recommendations/detailed", response_model=List[schema.Track])
+@app.get("/users/gru_recommendations/detailed", response_model=List[schema.TrackView])
 def get_user_recommendations_detailed(
     limit: int = 10,
     db: Session = Depends(get_db),
@@ -288,7 +288,7 @@ def get_user_recommendations_detailed(
         return []
 
     # 3. Récupération des objets complets depuis la BDD
-    tracks_db = db.query(Track).filter(Track.track_id.in_(track_ids)).all()
+    tracks_db = db.query(ViewTrackMaterialise).filter(ViewTrackMaterialise.track_id.in_(track_ids)).all()
     
     # 4. Réordonner selon le score de pertinence (car SQL IN casse l'ordre)
     tracks_dict = {t.track_id: t for t in tracks_db}
