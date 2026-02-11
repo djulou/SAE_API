@@ -1,16 +1,15 @@
-
-type Page = 'acceuil' | 'detail_compte'
+type Page = 'acceuil' | 'detail_compte' | 'CGU' | 'contact' | 'mentions_legales'
 type HeaderProps = {
   onNavigate: (page: Page) => void
 }
 
-export default function Footer({ onNavigate }: HeaderProps): JSX.Element {
+function Footer({ onNavigate }: HeaderProps): JSX.Element {
   return (
     <footer className="footer">
       <nav className="footer-links">
-        <a href="/cgu">CGU</a>
-        <a href="/contact">Contact</a>
-        <a href="/mentions-legales">Mentions légales</a>
+        <button onClick={() => onNavigate("CGU")}>CGU</button>
+        <button onClick={() => onNavigate("contact")}>Contact</button>
+        <button onClick={() => onNavigate("mentions_legales")}>Mentions Légales</button>
       </nav>
 
       <p className="footer-copy">
@@ -19,3 +18,5 @@ export default function Footer({ onNavigate }: HeaderProps): JSX.Element {
     </footer>
   )
 }
+
+export default Footer
