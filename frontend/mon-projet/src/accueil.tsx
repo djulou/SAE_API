@@ -1,4 +1,3 @@
-import { useState } from "react"
 import Carousel from "./components/Carousel"
 import CarteChanson from "./components/carte_chanson"
 import CartePlaylist from "./components/carte_playlist"
@@ -7,7 +6,6 @@ import { getChansons } from "./services/chansonService"
 import type { Playlist } from "./types/Playlist"
 import type { Album } from "./types/Album"
 import viteLogo from "/vite.svg"
-
 
 type AccueilProps = {
   isConnected: boolean
@@ -18,7 +16,6 @@ type AccueilProps = {
  
 export default function Accueil( {isConnected = false} : AccueilProps)  {
   const chansons = getChansons()
-  const [search, setSearch] = useState("")
 
   const playlists: Playlist[] = Array.from({ length: 50 }, () => ({
     title: "Top Disney",
@@ -33,35 +30,17 @@ export default function Accueil( {isConnected = false} : AccueilProps)  {
   }))
 
   /* 🔎 Filtres */
-  const chansonsFiltrees = chansons.filter(
-    (c) =>
-      c.title.toLowerCase().includes(search.toLowerCase()) ||
-      c.artist.toLowerCase().includes(search.toLowerCase())
-  )
+  const chansonsFiltrees = chansons
 
-  const playlistsFiltrees = playlists.filter(
-    (p) =>
-      p.title.toLowerCase().includes(search.toLowerCase()) ||
-      p.creator.toLowerCase().includes(search.toLowerCase())
-  )
+  const playlistsFiltrees = playlists
+  
 
-  const albumsFiltres = albums.filter(
-    (a) =>
-      a.title.toLowerCase().includes(search.toLowerCase()) ||
-      a.artist.toLowerCase().includes(search.toLowerCase())
-  )
+  const albumsFiltres = albums
+  
 
   return (
     <>
-      {/* 🔍 BARRE DE RECHERCHE */}
-      <div className="search-bar">
-        <input
-          type="text"
-          placeholder="Rechercher une musique, un artiste, une playlist..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
-      </div>
+
 
       <h2>Musiques recommandées</h2>
       <Carousel>
