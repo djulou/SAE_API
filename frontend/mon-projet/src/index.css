@@ -477,3 +477,13 @@ text-align: center;
   text-align: center;
   font-size: 16px;
 }
+
+/* CGU & mentions légales*/
+.centrer {
+    text-align: center;
+}
+
+.articles {
+    color: midnightblue;
+    padding-top: 50px;
+}
