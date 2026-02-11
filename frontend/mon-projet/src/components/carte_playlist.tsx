@@ -1,5 +1,5 @@
 import { useState } from "react"
-import Coeur from "./Coeur"
+import Coeur from "./coeur"
 
 type CartePlaylistProps = {
   title: string
@@ -33,7 +33,7 @@ function CartePlaylist({
           isFavorite={isFavorite}
           isConnected={isConnected}
           toggleFavorite={toggleFavorite}
-          
+
         />
       </div>
 

@@ -53,7 +53,7 @@ db_host = os.getenv("DB_HOST", "localhost")
 DB_CONFIG = {
     "dbname": "postgres",
     "user": "postgres",
-    "password": "uJ7A\postgres",
+    "password": "admin",
     "host": "localhost",
     "port": "5432"
 }

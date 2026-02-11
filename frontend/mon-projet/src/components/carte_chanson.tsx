@@ -1,11 +1,12 @@
 import { useState } from 'react'
-import Coeur from "./Coeur"
+import Coeur from "./coeur"
 
 type CarteChansonProps = {
   title: string
   artist: string
   pochette: string
   isConnected: boolean
+  onAdd?: () => void
 }
 
 function CarteChanson({
@@ -13,6 +14,7 @@ function CarteChanson({
   artist,
   pochette,
   isConnected,
+  onAdd
 }: CarteChansonProps) {
   const [isFavorite, setIsFavorite] = useState(false)
 
@@ -30,12 +32,25 @@ function CarteChanson({
           className="pochette"
         />
 
-        <Coeur
-          isFavorite={isFavorite}
-          isConnected={isConnected}
-          toggleFavorite={toggleFavorite}
-          
-        />
+        <div className="actions-overlay">
+          <Coeur
+            isFavorite={isFavorite}
+            isConnected={isConnected}
+            toggleFavorite={toggleFavorite}
+          />
+          {isConnected && onAdd && (
+            <button
+              className="btn-add-track"
+              onClick={(e) => {
+                e.stopPropagation();
+                onAdd();
+              }}
+              title="Ajouter à une playlist"
+            >
+              +
+            </button>
+          )}
+        </div>
       </div>
 
       <div className="description">

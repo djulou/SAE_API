@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 // import "./App.css"
 import "./index.css"
 
@@ -10,28 +10,53 @@ import DetailCompte from "./detail_compte"
 import PageInstallation from "./installation"
 import Login from "./login"
 import Register from "./register"
+import { getCurrentUser, logout } from "./services/authService"
 
 
 import type { Page } from "./types/Page"
 
-// type Page =
-//   | "accueil"
-//   | "detail_compte"
-//   | "page_installation"
-//   | "login"
-//   | "register"
-
-function App(): JSX.Element {
+function App() {
   const [page, setPage] = useState<Page>("accueil")
 
   // 🔐 état de connexion
   const [isConnected, setIsConnected] = useState<boolean>(false)
+  const [userId, setUserId] = useState<number | null>(null)
+
+  // Vérification de la session au chargement
+  useEffect(() => {
+    const token = localStorage.getItem("token")
+    if (token) {
+      getCurrentUser()
+        .then(user => {
+          setIsConnected(true)
+          setUserId(user.user_id)
+        })
+        .catch(() => {
+          logout()
+          setIsConnected(false)
+        })
+    }
+  }, [])
+
+  const handleLoginSuccess = () => {
+    setIsConnected(true)
+    const storedId = localStorage.getItem("user_id")
+    if (storedId) setUserId(parseInt(storedId))
+    setPage("accueil")
+  }
+
+  const handleLogout = () => {
+    logout()
+    setIsConnected(false)
+    setUserId(null)
+    setPage("accueil")
+  }
 
   return (
     <>
-      <Header onNavigate={setPage} isConnected={isConnected} />
+      <Header onNavigate={setPage} isConnected={isConnected} onLogout={handleLogout} />
 
-      {page === "accueil" && <Accueil isConnected= {isConnected} />}
+      {page === "accueil" && <Accueil isConnected={isConnected} userId={userId} />}
 
       {page === "detail_compte" && (
         isConnected ? <DetailCompte /> : setPage("login")
@@ -41,21 +66,14 @@ function App(): JSX.Element {
 
       {page === "login" && (
         <Login
-          onLogin={() => {
-            setIsConnected(true)
-            setPage("accueil")
-          }}
+          onLogin={handleLoginSuccess}
           onRegister={() => setPage("register")}
         />
       )}
 
       {page === "register" && (
         <Register
-          onRegister={() => {
-            setIsConnected(true)
-            setPage("accueil")
-          }}
-          onCancel={() => setPage("login")}
+          onNavigate={setPage}
         />
       )}
 

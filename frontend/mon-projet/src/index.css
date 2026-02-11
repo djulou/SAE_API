@@ -1,4 +1,3 @@
-
 /* 
 :root {
   line-height: 1.5;
@@ -13,7 +12,7 @@
   -moz-osx-font-smoothing: grayscale;
 } */
 :root {
-  
+
   /* Couleurs principales */
   --color-primary: #F59E0B;
   --color-primary-light: rgba(245, 158, 11, 0.2);
@@ -27,7 +26,7 @@
   --color-border: #1E293B;
 
   /* Typographie */
-    font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
 
   text-align: left;
   font-synthesis: none;
@@ -42,10 +41,10 @@
   --radius-full: 9999px;
 
   /* Ombres */
-  --shadow-sm: 0px 2px 4px -2px rgba(0,0,0,0.1);
-  --shadow-md: 0px 4px 6px -1px rgba(0,0,0,0.1);
-  --shadow-lg: 0px 10px 15px -3px rgba(0,0,0,0.1);
-  --shadow-xl: 0px 25px 50px -12px rgba(0,0,0,0.25);
+  --shadow-sm: 0px 2px 4px -2px rgba(0, 0, 0, 0.1);
+  --shadow-md: 0px 4px 6px -1px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0px 10px 15px -3px rgba(0, 0, 0, 0.1);
+  --shadow-xl: 0px 25px 50px -12px rgba(0, 0, 0, 0.25);
 
   /* Layout */
   --sidebar-width: 260px;
@@ -58,13 +57,14 @@ a {
   color: #646cff;
   text-decoration: inherit;
 }
+
 a:hover {
   color: #535bf2;
 }
 
 body {
   margin: 0;
-  
+
   /* place-items: center; */
   min-width: 320px;
   min-height: 100vh;
@@ -88,9 +88,11 @@ button {
   cursor: pointer;
   transition: border-color 0.25s;
 }
+
 button:hover {
   border-color: #646cff;
 }
+
 button:focus,
 button:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
@@ -101,9 +103,11 @@ button:focus-visible {
     color: #213547;
     background-color: #ffffff;
   }
+
   a:hover {
     color: #747bff;
   }
+
   button {
     background-color: #f9f9f9;
   }
@@ -123,7 +127,7 @@ button:focus-visible {
 }
 
 /* Bouton du logo */
-.header > button:first-child {
+.header>button:first-child {
   background: none;
   border: none;
   padding: 0;
@@ -133,9 +137,12 @@ button:focus-visible {
 
 /* Logo */
 .logo {
-  height: 3rem;           /* contrôle propre de la taille */
-  width: auto;            /* garde les proportions */
-  display: block;         /* supprime espace inline */
+  height: 3rem;
+  /* contrôle propre de la taille */
+  width: auto;
+  /* garde les proportions */
+  display: block;
+  /* supprime espace inline */
   object-fit: contain;
 }
 
@@ -155,8 +162,9 @@ button:focus-visible {
   border: 1px solid #ccc;
 } */
 
- .search-bar {
-  flex: 1;                /* prend l’espace central */
+.search-bar {
+  flex: 1;
+  /* prend l’espace central */
   display: flex;
   justify-content: center;
   margin: 0 2rem;
@@ -169,8 +177,9 @@ button:focus-visible {
   font-size: 1rem;
   border-radius: var(--radius-full);
   border: 1px solid var(--color-border);
-} */
-.nav-button {
+}
+
+*/ .nav-button {
   background: none;
   border: none;
   color: white;
@@ -196,6 +205,7 @@ button:focus-visible {
 .nav-list li:hover {
   text-decoration: underline;
 }
+
 /* Conteneur */
 .auth-menu {
   display: flex;
@@ -235,7 +245,8 @@ button:focus-visible {
 }
 
 .btn-register:hover {
-  background: (--color-primary); /* légèrement plus clair */
+  background: (--color-primary);
+  /* légèrement plus clair */
   transform: translateY(-2px);
   box-shadow: var(--shadow-md);
 }
@@ -244,7 +255,9 @@ button:focus-visible {
 
 
 
-.carte-chanson,.carte-album,.carte-playlist {
+.carte-chanson,
+.carte-album,
+.carte-playlist {
   position: relative;
   width: 12em;
   min-width: 12em;
@@ -256,16 +269,18 @@ button:focus-visible {
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-.carte-chanson:hover, .carte-album:hover, .carte-playlist:hover {
-  
+.carte-chanson:hover,
+.carte-album:hover,
+.carte-playlist:hover {
+
   transform: translateY(-6px);
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
 }
 
 .carte-playlist>.description>h3 {
-background-color: gold;
-color: #000;
-text-align: center;
+  background-color: gold;
+  color: #000;
+  text-align: center;
 }
 
 
@@ -364,7 +379,7 @@ text-align: center;
 
 
 
-/* acceuil================================================================== */
+/* accueil================================================================== */
 
 
 /* ===== Layout principal ===== */
@@ -375,6 +390,7 @@ text-align: center;
   background: var(--color-bg);
   color: var(--color-text);
 }
+
 .menu-favoris {
   width: 260px;
   min-width: 220px;
@@ -480,7 +496,8 @@ text-align: center;
 
 /* Page */
 .login-page {
-  min-height: calc(100vh - 160px); /* header + footer */
+  min-height: calc(100vh - 160px);
+  /* header + footer */
   display: flex;
   justify-content: center;
   align-items: center;
@@ -557,4 +574,214 @@ text-align: center;
 .contact {
   text-align: center;
   font-size: 16px;
+}
+
+/* ===== Modal & Playlist Overlay ===== */
+
+.actions-overlay {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  z-index: 10;
+}
+
+.btn-add-track {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: none;
+  background: var(--color-primary);
+  color: black;
+  font-size: 20px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  transition: transform 0.2s;
+  padding: 0;
+}
+
+.btn-add-track:hover {
+  transform: scale(1.1);
+  background: #fbbf24;
+}
+
+/* Modal */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  backdrop-filter: blur(4px);
+}
+
+.modal-content {
+  background: var(--color-bg-light);
+  width: 90%;
+  max-width: 450px;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-xl);
+  display: flex;
+  flex-direction: column;
+  max-height: 80vh;
+}
+
+.modal-header {
+  padding: 1.5rem;
+  border-bottom: 1px solid var(--color-border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modal-header h2 {
+  margin: 0;
+  font-size: 1.25rem;
+  color: var(--color-text);
+  /* Force la couleur du texte */
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  color: var(--color-text-muted);
+  font-size: 1.5rem;
+  cursor: pointer;
+}
+
+.modal-body {
+  padding: 1.5rem;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.search-input {
+  width: 100%;
+  padding: 0.75rem;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  color: white;
+}
+
+.search-input::placeholder {
+  color: var(--color-text-muted);
+}
+
+.playlist-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  max-height: 250px;
+  overflow-y: auto;
+  color: var(--color-text);
+  /* Assure que le texte des items est blanc */
+}
+
+.no-result {
+  text-align: center;
+  padding: 1rem;
+  color: var(--color-text-muted);
+  font-style: italic;
+}
+
+.playlist-item {
+  padding: 0.5rem;
+  border-radius: var(--radius-sm);
+  transition: background 0.2s;
+}
+
+.playlist-item:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.playlist-item label {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  width: 100%;
+}
+
+.playlist-name {
+  flex: 1;
+}
+
+.playlist-count {
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+}
+
+.create-section {
+  display: flex;
+  gap: 8px;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--color-border);
+}
+
+.create-section input {
+  flex: 1;
+  padding: 0.5rem;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  color: white;
+}
+
+.btn-create-playlist {
+  background: none;
+  border: 1px dashed var(--color-border);
+  color: var(--color-primary);
+  width: 100%;
+  text-align: left;
+  padding: 0.75rem;
+  border-radius: var(--radius-sm);
+}
+
+.modal-footer {
+  padding: 1.5rem;
+  border-top: 1px solid var(--color-border);
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.btn-confirm {
+  background: var(--color-primary);
+  color: black;
+  font-weight: 600;
+  padding: 0.6rem 1.5rem;
+}
+
+.btn-cancel {
+  background: transparent;
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+}
+
+.btn-primary-small {
+  background: var(--color-primary);
+  color: black;
+  padding: 4px 12px;
+  font-size: 0.9rem;
+}
+
+.btn-cancel-small {
+  background: transparent;
+  color: var(--color-text-muted);
 }

@@ -1,17 +1,16 @@
 
-type Page = 'acceuil' | 'detail_compte'
-type HeaderProps = {
+type Page = 'accueil' | 'detail_compte' | 'page_installation' | 'login' | 'register'
+type FooterProps = {
   onNavigate: (page: Page) => void
 }
 
-export default function Footer({ onNavigate }: HeaderProps): JSX.Element {
+export default function Footer({ onNavigate }: FooterProps) {
   return (
     <footer className="footer">
-      <nav className="footer-links">
-        <a href="/cgu">CGU</a>
-        <a href="/contact">Contact</a>
+      <div className="footer-links">
+        <a href="#" onClick={(e) => { e.preventDefault(); onNavigate('accueil'); }}>Accueil</a>
         <a href="/mentions-legales">Mentions légales</a>
-      </nav>
+      </div>
 
       <p className="footer-copy">
         © Tous droits réservés

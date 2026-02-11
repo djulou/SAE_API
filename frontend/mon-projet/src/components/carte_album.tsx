@@ -1,7 +1,7 @@
 
 import { useState } from "react"
 
-import Coeur from "./Coeur"
+import Coeur from "./coeur"
 
 
 
@@ -14,12 +14,12 @@ type CarteAlbumProps = {
 
 }
 
-function CarteAlbum({ title, artist, pochette, isConnected}: CarteAlbumProps) {
+function CarteAlbum({ title, artist, pochette, isConnected }: CarteAlbumProps) {
   const [isFavorite, setIsFavorite] = useState(false)
-  
-    const toggleFavorite = () => {
-      setIsFavorite((prev) => !prev)
-    }
+
+  const toggleFavorite = () => {
+    setIsFavorite((prev) => !prev)
+  }
   return (
     <>
       <div className="carte-album" id="carte-album">
@@ -30,11 +30,11 @@ function CarteAlbum({ title, artist, pochette, isConnected}: CarteAlbumProps) {
             className="pochette"
           />
           <Coeur
-          isFavorite={isFavorite}
-          isConnected={isConnected}
-          toggleFavorite={toggleFavorite}
-          
-        />
+            isFavorite={isFavorite}
+            isConnected={isConnected}
+            toggleFavorite={toggleFavorite}
+
+          />
         </div>
 
         <div className="description">
