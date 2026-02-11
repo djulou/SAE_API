@@ -1,18 +1,56 @@
 
-
+/* 
 :root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
   font-weight: 400;
 
   color-scheme: light dark;
   color: #111;
   background-color: #ffffff;
+
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+} */
+:root {
+  
+  /* Couleurs principales */
+  --color-primary: #F59E0B;
+  --color-primary-light: rgba(245, 158, 11, 0.2);
+  --color-danger: #EF4444;
+
+  /* Neutres */
+  --color-bg: #0A0C10;
+  --color-bg-light: #161B22;
+  --color-text: #FFFFFF;
+  --color-text-muted: #94A3B8;
+  --color-border: #1E293B;
+
+  /* Typographie */
+    font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+
   text-align: left;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+
+  /* Rayons */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-full: 9999px;
+
+  /* Ombres */
+  --shadow-sm: 0px 2px 4px -2px rgba(0,0,0,0.1);
+  --shadow-md: 0px 4px 6px -1px rgba(0,0,0,0.1);
+  --shadow-lg: 0px 10px 15px -3px rgba(0,0,0,0.1);
+  --shadow-xl: 0px 25px 50px -12px rgba(0,0,0,0.25);
+
+  /* Layout */
+  --sidebar-width: 260px;
+  --header-height: 80px;
+  --container-padding: 24px;
 }
 
 a {
@@ -70,21 +108,58 @@ button:focus-visible {
     background-color: #f9f9f9;
   }
 }
-
-
-
 .header {
+  height: var(--header-height);
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  padding: 20px;
+  justify-content: space-between;
+
+  padding: 0 2rem;
   background-color: #111;
   color: white;
 }
 
-.logo {
-  margin: 0;
+/* Bouton du logo */
+.header > button:first-child {
+  background: none;
+  border: none;
+  padding: 0;
+  display: flex;
+  align-items: center;
 }
+
+/* Logo */
+.logo {
+  height: 3rem;           /* contrôle propre de la taille */
+  width: auto;            /* garde les proportions */
+  display: block;         /* supprime espace inline */
+  object-fit: contain;
+}
+.search-bar {
+  flex: 1;                /* prend l’espace central */
+  display: flex;
+  justify-content: center;
+  margin: 0 2rem;
+}
+
+.search-bar input {
+  width: 100%;
+  max-width: 30rem;
+  padding: 0.6em 1em;
+  font-size: 1rem;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--color-border);
+}
+.nav-button {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 1rem;
+  font-weight: 500;
+  padding: 0;
+  cursor: pointer;
+}
+
 
 .nav-list {
   list-style: none;
@@ -101,6 +176,52 @@ button:focus-visible {
 .nav-list li:hover {
   text-decoration: underline;
 }
+/* Conteneur */
+.auth-menu {
+  display: flex;
+  align-items: center;
+  margin: 0 0 0 1em;
+
+}
+
+/* Base commune */
+.btn-auth {
+  padding: 0.5em 1.2em;
+  font-size: 0.95rem;
+  font-weight: 500;
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 1px solid transparent;
+}
+
+/* Connexion → bouton outline */
+.btn-login {
+  background: transparent;
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+}
+
+.btn-login:hover {
+  background: var(--color-bg-light);
+  border-color: var(--color-primary);
+}
+
+/* Inscription → bouton principal */
+.btn-register {
+  background: var(--color-primary);
+  color: #000;
+  border: none;
+}
+
+.btn-register:hover {
+  background: (--color-primary); /* légèrement plus clair */
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+
+
 
 
 .carte-chanson,.carte-album,.carte-playlist {
