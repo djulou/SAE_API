@@ -1,5 +1,5 @@
 
-type Page = 'acceuil' | 'detail_compte'
+type Page = 'accueil' | 'detail_compte'
 type HeaderProps = {
   onNavigate: (page: Page) => void
 }
