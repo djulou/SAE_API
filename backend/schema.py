@@ -66,10 +66,11 @@ class TrackView(BaseModel):
     track_interest: Optional[float] = None
     album_id: Optional[int] = None
     album_title: Optional[str] = None
+    album_image_file: Optional[str] = None
     artist_id: Optional[int] = None
     artist_name: Optional[str] = None
-    genres_list: Optional[str] = None
-    tempo: Optional[float] = None
+    # genres_list: Optional[str] = None
+    # tempo: Optional[float] = None
 
     class Config:
         from_attributes = True

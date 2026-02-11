@@ -9,7 +9,7 @@ import bcrypt
 from models import ( 
     Album, User, Playlist, Track, Artist, ListeningHistory, UserAlbumListening, UserPlaylistListening,
     PlaylistUserFavorite, TrackUserFavorite, UserArtistFavorite, UserAlbumFavorite, PlaylistUser,
-    PlaylistTrack, UserTrackListening, SearchHistory
+    PlaylistTrack, UserTrackListening, SearchHistory, ViewTrackMaterialise
 )
 
 import schema
@@ -17,7 +17,7 @@ import schema
 from schema import (    
     UserCreate, PlaylistCreate, ListeningHistoryCreate, UserAlbumListeningCreate, UserPlaylistListeningCreate,
     PlaylistUserFavoriteCreate, TrackUserFavoriteCreate, UserArtistFavoriteCreate, UserAlbumFavoriteCreate, PlaylistUserCreate,
-    PlaylistTrackCreate, UserTrackListeningCreate, SearchHistoryCreate,
+    PlaylistTrackCreate, UserTrackListeningCreate, SearchHistoryCreate, TrackView,
 
     UserUpdate, PlaylistUpdate, UserTrackListeningUpdate, UserAlbumListeningUpdate, UserPlaylistListeningUpdate
 )
@@ -181,13 +181,22 @@ def get_all_track(db: Session = Depends(get_db)):
 
 
 @app.get("/user")
-def get_user_by_id(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+def get_user(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     user = db.query(User).filter(User.user_id == current_user.user_id).first()
     
     if user.user_id != current_user.user_id:
         raise HTTPException(status_code=403, detail="Vous ne pouvez accéder qu'à votre propre compte")
     
     return user
+
+@app.get("/viewTrack", response_model=List[schema.TrackView]) 
+def get_all_track(limit: Optional[int] = None, db: Session = Depends(get_db)):
+    query = db.query(ViewTrackMaterialise)
+    
+    if limit is not None:
+        query = query.limit(limit)
+    
+    return query.all()
 
 ####### RECOMMANDATIONS IA ##
 

@@ -15,7 +15,7 @@ function Header({ onNavigate, isConnected }: HeaderProps): JSX.Element {
 
   return (
     <header className="header">
-      <button onClick={() => onNavigate("acceuil")}>
+      <button onClick={() => onNavigate("accueil")}>
         <img src={Logo} className="logo" alt="site logo" />
       </button>
             {/* 🔍 BARRE DE RECHERCHE */}
