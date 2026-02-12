@@ -12,21 +12,11 @@ import Login from "./login"
 import Register from "./register"
 import { getCurrentUser, logout } from "./services/authService"
 
-
 import type { Page } from "./types/Page"
+import CGU from "./CGU"
+import MentionsLegales from "./mentions_legales"
 
 function App() {
-// type Page =
-//   | "accueil"
-//   | "detail_compte"
-//   | "page_installation"
-//   | "login"
-//   | "register"
-//   | "CGU"
-//   | "contact"
-//   | "mentions_legales"
-
-function App(): JSX.Element {
   const [page, setPage] = useState<Page>("accueil")
 
   // 🔐 état de connexion
