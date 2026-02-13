@@ -30,6 +30,8 @@ from dotenv import load_dotenv
 from jose import JWTError, jwt
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 
+import pandas as pd
+
 load_dotenv()
 
 # Configuration JWT
@@ -187,6 +189,30 @@ def get_user_playlists(user_id: int, db: Session = Depends(get_db), current_user
     playlists = db.query(Playlist).filter(Playlist.user_id == user_id).all()
     return playlists
 
+@app.get("/playlist/{playlist_id}/tracks", response_model=List[schema.TrackView])
+def get_playlist_tracks(playlist_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    playlist = db.query(Playlist).filter(Playlist.playlist_id == playlist_id).first()
+    
+    if not playlist:
+        raise HTTPException(status_code=404, detail="Playlist non trouvée")
+    
+    if playlist.user_id != current_user.user_id:
+        raise HTTPException(status_code=403, detail="Accès non autorisé à cette playlist")
+    
+    track_ids = db.query(PlaylistTrack.track_id).filter(
+        PlaylistTrack.playlist_id == playlist_id
+    ).all()
+    
+    track_ids_list = [tid[0] for tid in track_ids]
+    
+    if not track_ids_list:
+        return []
+    tracks = db.query(ViewTrackMaterialise).filter(
+        ViewTrackMaterialise.track_id.in_(track_ids_list)
+    ).all()
+    
+    return tracks
+
 @app.get("/user")
 def get_current_user_profile(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     return current_user
@@ -305,6 +331,72 @@ def get_user_recommendations_detailed(
     
     return ordered_tracks
 
+
+####### RECOMMANDATIONS TF-IDF ##
+
+@app.get("/users/tf-idf_recommendations", response_model=List[schema.TrackView])
+def get_user_recommendations_detailed(
+    limit: int = 10,
+    penalty: float = 0.5,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Version détaillée : Renvoie les objets Track complets (pour affichage playlist direct).
+    """
+
+    try:
+        # 1. Récupération des données pour le moteur de recommandation
+        tracks_data = db.query(ViewTrackMaterialise).all()
+
+        data_dict = [
+            {column.name: getattr(track, column.name) for column in track.__table__.columns} 
+            for track in tracks_data
+        ]
+
+        df = pd.DataFrame(data_dict)
+        df = df.fillna('')
+
+        from recommender.TF_IDF import ContentRecommender
+        rec = ContentRecommender(df)
+
+        # 2. Récupération de l'historique
+        user_history_query = db.query(
+            UserTrackListening.track_id,
+        ).filter(
+            UserTrackListening.user_id == current_user.user_id
+        ).order_by(UserTrackListening.nb_listening.desc()).first()
+
+        if user_history_query is None:
+            return []
+
+        # 3. Calcul des recommandations (renvoie souvent une liste d'IDs)
+        recommended_df = rec.recommend(user_history_query.track_id, top_k=limit, same_artist_penalty=penalty)
+
+        if recommended_df.empty:
+            return []
+
+        # 4. RÉCUPÉRATION DES OBJETS COMPLETS DEPUIS LA VUE
+        ids_to_fetch = recommended_df["track_id"].tolist()
+
+        final_tracks = db.query(ViewTrackMaterialise).filter(
+            ViewTrackMaterialise.track_id.in_(ids_to_fetch)
+        ).all()
+
+        # 5. Trier pour garder l'ordre de pertinence de l'IA
+        tracks_dict = {t.track_id: t for t in final_tracks}
+
+        ordered_tracks = []
+        for tid in ids_to_fetch:
+            if tid in tracks_dict:
+                ordered_tracks.append(tracks_dict[tid])
+
+        return ordered_tracks
+
+    except Exception as e:
+        print(f" Recommandeur non disponible : {e}")
+        return []
+
 ####### POST ##
 
 @app.post("/user", status_code=201)
@@ -406,8 +498,16 @@ def create_playlist_user_favorite(playlist_user_favorite_data: PlaylistUserFavor
 @app.post("/trackUserFavorite", status_code=201)
 def create_track_user_favorite(track_user_favorite_data: TrackUserFavoriteCreate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     
-    track_user_favorite_dict = track_user_favorite_data.model_dump()
+    # Vérifie si déjà présent
+    existing = db.query(TrackUserFavorite).filter(
+        TrackUserFavorite.user_id == current_user.user_id,
+        TrackUserFavorite.track_id == track_user_favorite_data.track_id
+    ).first()
     
+    if existing:
+        return existing
+
+    track_user_favorite_dict = track_user_favorite_data.model_dump()
     track_user_favorite_dict["user_id"] = current_user.user_id
     
     new_track_user_favorite = TrackUserFavorite(**track_user_favorite_dict)
@@ -417,6 +517,20 @@ def create_track_user_favorite(track_user_favorite_data: TrackUserFavoriteCreate
     db.refresh(new_track_user_favorite)
     
     return new_track_user_favorite
+
+@app.delete("/trackUserFavorite/{track_id}", status_code=200)
+def delete_track_user_favorite(track_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    favorite = db.query(TrackUserFavorite).filter(
+        TrackUserFavorite.user_id == current_user.user_id,
+        TrackUserFavorite.track_id == track_id
+    ).first()
+    
+    if not favorite:
+        raise HTTPException(status_code=404, detail="Favori non trouvé")
+        
+    db.delete(favorite)
+    db.commit()
+    return {"message": "Favori supprimé"}
 
 @app.post("/userArtistFavorite", status_code=201)
 def create_user_artist_favorite(user_artist_favorite_data: UserArtistFavoriteCreate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
