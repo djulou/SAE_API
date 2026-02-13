@@ -24,10 +24,12 @@ interface Track {
 export default function Accueil({ isConnected = false, userId }: AccueilProps) {
   
   const [tracks, setTracks] = useState<Track[]>([]);
-  const [recoTracks, setRecoTracks] = useState<Track[]>([]);
+  const [recoGRU, setRecoGRU] = useState<Track[]>([]);
+  const [recoTF_IDF, setRecoTF_IDF] = useState<Track[]>([]);
   
   const [loadingGeneral, setLoadingGeneral] = useState(true);
-  const [loadingReco, setLoadingGRU] = useState(false);
+  const [loadingGRU, setLoadingGRU] = useState(false);
+  const [loadingTF_IDF, setLoadingTF_IDF] = useState(false);
 
   const [error, setError] = useState<string | null>(null);
 
@@ -60,15 +62,41 @@ export default function Accueil({ isConnected = false, userId }: AccueilProps) {
         
           if (res.ok) {
             const data = await res.json();
-            setRecoTracks(data);
+            setRecoGRU(data);
           }
         }
       } catch (e) { console.error(e); }
       finally { setLoadingGRU(false); }
     }
 
+    async function loadTF_IDF() {
+      if (!isConnected) return;
+      
+      setLoadingTF_IDF(true);
+      try {
+        const token = localStorage.getItem("token");
+
+        if (token && isConnected) {
+          const res = await fetch("http://127.0.0.1:8000/users/tf-idf_recommendations?limit=10", {
+            method: "GET",
+            headers: {
+              "Authorization": `Bearer ${token}`, // Envoi du badge d'accès
+              "Content-Type": "application/json"
+            }
+          });
+        
+          if (res.ok) {
+            const data = await res.json();
+            setRecoTF_IDF(data);
+          }
+        }
+      } catch (e) { console.error(e); }
+      finally { setLoadingTF_IDF(false); }
+    }
+
     loadGeneralTracks();
     loadGRU();
+    loadTF_IDF();
   }, [isConnected]);
 
   const [modalOpen, setModalOpen] = useState(false)
@@ -144,13 +172,33 @@ export default function Accueil({ isConnected = false, userId }: AccueilProps) {
         <div className="reco-section">
           <h2>Selon vos recherches</h2>
 
-          {loadingReco ? (
+          {loadingGRU ? (
             <div>
               <p>Chargement des musiques...</p>
             </div>
           ) : (
             <Carousel>
-              {recoTracks.map((track) => (
+              {recoGRU.map((track) => (
+                <CarteChanson
+                    key={`reco-${track.track_id}`}
+                    title={track.track_title}
+                    artist={track.artist_name}
+                    pochette={track.album_image_file}
+                    isConnected={isConnected}
+                  />
+              ))}
+            </Carousel>
+          )}
+
+          <h2>Selon vos préférences</h2>
+
+          {loadingTF_IDF ? (
+            <div>
+              <p>Chargement des musiques...</p>
+            </div>
+          ) : (
+            <Carousel>
+              {recoTF_IDF.map((track) => (
                 <CarteChanson
                     key={`reco-${track.track_id}`}
                     title={track.track_title}

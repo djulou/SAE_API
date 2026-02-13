@@ -64,13 +64,20 @@ class TrackView(BaseModel):
     track_title: Optional[str] = None
     track_duration: Optional[float] = None
     track_interest: Optional[float] = None
+    
     album_id: Optional[int] = None
     album_title: Optional[str] = None
     album_image_file: Optional[str] = None
+    
     artist_id: Optional[int] = None
     artist_name: Optional[str] = None
-    # genres_list: Optional[str] = None
-    # tempo: Optional[float] = None
+
+    track_genre_maj: Optional[str] = None
+    
+    # Ces champs seront maintenant remplis par les STRING_AGG du SQL
+    genres_list: Optional[str] = None
+    tags_list: Optional[str] = None
+    languages_list: Optional[str] = None
 
     class Config:
         from_attributes = True

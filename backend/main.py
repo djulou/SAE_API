@@ -30,6 +30,8 @@ from dotenv import load_dotenv
 from jose import JWTError, jwt
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 
+import pandas as pd
+
 load_dotenv()
 
 # Configuration JWT
@@ -198,7 +200,7 @@ def get_all_track(limit: Optional[int] = None, db: Session = Depends(get_db)):
     
     return query.all()
 
-####### RECOMMANDATIONS IA ##
+####### RECOMMANDATIONS GRU ##
 
 # Import lazy du recommandeur (évite le chargement si pas utilisé)
 _recommender = None
@@ -295,6 +297,72 @@ def get_user_recommendations_detailed(
     ordered_tracks = [tracks_dict[tid] for tid in track_ids if tid in tracks_dict]
     
     return ordered_tracks
+
+
+####### RECOMMANDATIONS TF-IDF ##
+
+@app.get("/users/tf-idf_recommendations", response_model=List[schema.TrackView])
+def get_user_recommendations_detailed(
+    limit: int = 10,
+    penalty: float = 0.5,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Version détaillée : Renvoie les objets Track complets (pour affichage playlist direct).
+    """
+
+    try:
+        # 1. Récupération des données pour le moteur de recommandation
+        tracks_data = db.query(ViewTrackMaterialise).all()
+
+        data_dict = [
+            {column.name: getattr(track, column.name) for column in track.__table__.columns} 
+            for track in tracks_data
+        ]
+
+        df = pd.DataFrame(data_dict)
+        df = df.fillna('')
+
+        from recommender.TF_IDF import ContentRecommender
+        rec = ContentRecommender(df)
+
+        # 2. Récupération de l'historique
+        user_history_query = db.query(
+            UserTrackListening.track_id,
+        ).filter(
+            UserTrackListening.user_id == current_user.user_id
+        ).order_by(UserTrackListening.nb_listening.desc()).first()
+
+        if user_history_query is None:
+            return []
+
+        # 3. Calcul des recommandations (renvoie souvent une liste d'IDs)
+        recommended_df = rec.recommend(user_history_query.track_id, top_k=limit, same_artist_penalty=penalty)
+
+        if recommended_df.empty:
+            return []
+
+        # 4. RÉCUPÉRATION DES OBJETS COMPLETS DEPUIS LA VUE
+        ids_to_fetch = recommended_df["track_id"].tolist()
+
+        final_tracks = db.query(ViewTrackMaterialise).filter(
+            ViewTrackMaterialise.track_id.in_(ids_to_fetch)
+        ).all()
+
+        # 5. Trier pour garder l'ordre de pertinence de l'IA
+        tracks_dict = {t.track_id: t for t in final_tracks}
+
+        ordered_tracks = []
+        for tid in ids_to_fetch:
+            if tid in tracks_dict:
+                ordered_tracks.append(tracks_dict[tid])
+
+        return ordered_tracks
+
+    except Exception as e:
+        print(f" Recommandeur non disponible : {e}")
+        return []
 
 ####### POST ##
 
