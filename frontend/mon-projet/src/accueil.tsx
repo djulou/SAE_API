@@ -110,7 +110,13 @@ export default function Accueil({ isConnected = false, userId }: AccueilProps) {
             <li>Artistes</li>
           </ul>
 
-          <button className="btn-add-playlist">
+          <button
+            className="btn-add-playlist"
+            onClick={() => {
+              setSelectedTrackId(null)
+              setModalOpen(true)
+            }}
+          >
             Ajouter une Playlist
           </button>
 
@@ -136,6 +142,7 @@ export default function Accueil({ isConnected = false, userId }: AccueilProps) {
                   // artist={track.artists.map(a => a.artist_name).join(", ")}
                   pochette={track.album_image_file}
                   isConnected={isConnected}
+                  onAdd={() => handleAddTrack(track.track_id)}
                 />
               ))}
             </Carousel>
@@ -153,6 +160,7 @@ export default function Accueil({ isConnected = false, userId }: AccueilProps) {
                     artist={track.artist_name}
                     pochette={track.album_image_file || viteLogo}
                     isConnected={isConnected}
+                    onAdd={() => handleAddTrack(track.track_id)}
                   />
                 ))}
               </Carousel>

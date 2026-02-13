@@ -180,6 +180,8 @@ class Playlist(Base):
     playlist_name: Mapped[Optional[str]] = mapped_column(String(100))
     playlist_listens: Mapped[int] = mapped_column(Integer, server_default=text("0"))
     user_id: Mapped[Optional[int]] = mapped_column(ForeignKey('sae.user.user_id', ondelete="CASCADE"))
+    
+    tracks = relationship("Track", secondary="sae.playlist_track", backref="playlists")
 
 class ListeningHistory(Base):
     __tablename__ = 'listening_history'
