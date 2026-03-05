@@ -37,6 +37,8 @@ import pandas as pd
 
 load_dotenv()
 
+
+
 # Configuration JWT
 SECRET_KEY = os.getenv("SECRET_KEY")
 if SECRET_KEY is None:
@@ -53,6 +55,24 @@ optional_oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login", auto_error=False
 ###########################################
 
 app = FastAPI()
+
+
+###########################################
+##      AUTORISATIONS & LANCEMENT        ##
+###########################################
+
+origins = [
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # Configuration BDD
 db_host = os.getenv("DB_HOST", "localhost")
@@ -1073,22 +1093,6 @@ def remove_track_from_playlist(playlist_id: int, track_id: int, db: Session = De
     db.commit()
     return {"message": "Piste retirée de la playlist"}
 
-###########################################
-##      AUTORISATIONS & LANCEMENT        ##
-###########################################
-
-origins = [
-    "http://localhost:5173",
-    "http://127.0.0.1:5173",
-]
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=origins,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
 
 if __name__ == "__main__":
     uvicorn.run(app, host="127.0.0.1", port=8000)

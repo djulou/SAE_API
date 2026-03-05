@@ -420,7 +420,7 @@ export default function Accueil({ isConnected = false, userId, onOpenPlaylist, o
 
           <h2>Albums recommandés</h2>
           <Carousel>
-            {topAlbums.map((album) => (
+            {topAlbum.map((album) => (
               <CarteAlbum
                 key={album.album_id}
                 title={album.album_title}
