@@ -244,3 +244,4 @@ function Lecture({
 }
 
 export default Lecture
+  
