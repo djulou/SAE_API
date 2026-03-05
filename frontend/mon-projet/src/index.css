@@ -1324,3 +1324,66 @@ button:focus-visible {
   justify-content: center;
   width: 40px;
 }
+
+/* Conteneur parent */
+.volume-control-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Bulle qui contient le slider */
+.volume-popover {
+  position: absolute;
+  bottom: 40px; /* Ajuste pour être juste au dessus de l'icône */
+  left: 50%;
+  transform: translateX(-50%);
+  background: #282828;
+  padding: 12px 8px;
+  border-radius: 20px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  height: 100px;
+}
+
+/* Transformation du slider en vertical */
+.volume-slider-vertical {
+  appearance: none;
+  width: 4px;
+  height: 80px;
+  background: rgba(255,255,255,0.2);
+  border-radius: 2px;
+  outline: none;
+  /* Rotation pour le mettre vertical */
+  writing-mode: bt-lr; /* Pour certains navigateurs */
+  appearance: slider-vertical; /* Pour Safari/Chrome */
+}
+
+/* Style du bouton icône */
+.btn-volume-icon {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 5px;
+  display: flex;
+  color: white;
+  transition: opacity 0.2s;
+}
+
+.btn-volume-icon:hover {
+  opacity: 0.8;
+}
+
+/* Style du petit rond du slider (Thumb) */
+.volume-slider-vertical::-webkit-slider-thumb {
+  appearance: none;
+  width: 12px;
+  height: 12px;
+  background: var(--color-primary);
+  border-radius: 50%;
+  cursor: pointer;
+}
