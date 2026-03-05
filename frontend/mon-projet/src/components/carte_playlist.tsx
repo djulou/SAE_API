@@ -16,7 +16,7 @@ function CartePlaylist({
   title,
   creator,
   isConnected,
-  onClick
+  onClick,
   // onAdd
 }: CartePlaylistProps) {
   const [isFavorite, setIsFavorite] = useState(false)
@@ -24,10 +24,10 @@ function CartePlaylist({
   const toggleFavorite = () => {
     setIsFavorite((prev) => !prev)
   }
-  
+
 
   return (
-    <div className="carte-playlist" >
+    <div className="carte-playlist" onClick={onClick}>
       <div className="pochette-wrapper">
         <GeneratedCover title={title} />
         <Coeur
