@@ -369,6 +369,7 @@ class ViewTrackMaterialise(Base):
     
     artist_id: Mapped[Optional[int]] = mapped_column(BigInteger)
     artist_name: Mapped[Optional[str]] = mapped_column(String(150))
+    artist_location: Mapped[Optional[str]] = mapped_column(String(500))
     track_genre_maj: Mapped[Optional[str]] = mapped_column(String(255))
     
     languages_list: Mapped[Optional[str]] = mapped_column(Text)

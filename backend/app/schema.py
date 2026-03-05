@@ -90,6 +90,7 @@ class TrackView(BaseModel):
         
     artist_id: Optional[int] = None
     artist_name: Optional[str] = None
+    artist_location: Optional[str] = None
 
     track_genre_maj: Optional[str] = None
     

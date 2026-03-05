@@ -1031,6 +1031,7 @@ SELECT
     alb.album_producer,
     alb.album_image_file,
     a.artist_id,
+    a.artist_location,
     gmaj.genre_title AS track_genre_maj,
     a.artist_name,
     STRING_AGG(DISTINCT tag.tag_name, ', ') AS tags_list,
@@ -1070,8 +1071,8 @@ GROUP BY
     s.danceability, 
     s.energy, 
     gmaj.genre_title,
-    s.tempo;
-
+    s.tempo,
+    a.artist_location;
 CREATE UNIQUE INDEX idx_view_track_mat_id ON sae.View_Track_Materialise (track_id);
 
 CREATE OR REPLACE VIEW sae.View_Favorite_Listens AS

@@ -333,7 +333,7 @@ def main():
 
         # ÉTAPE 3 : DEEZER
         print("🌍 [ÉTAPE 3] Deezer...")
-        harvest_everything(limit_count=10)
+        harvest_everything(limit_count=2)
         
         with engine.begin() as conn:
             conn.execute(text("REFRESH MATERIALIZED VIEW sae.view_track_materialise;"))
