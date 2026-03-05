@@ -12,6 +12,8 @@ import Login from "./login"
 import Register from "./register"
 import CGU from "./CGU"
 import MentionsLegales from "./mentions_legales"
+import Contact from "./Contact"
+
 import PlaylistDetail from "./components/PlaylistDetail"
 import AlbumDetail from "./components/AlbumDetail"
 
@@ -29,6 +31,12 @@ function App() {
   const [isConnected, setIsConnected] = useState<boolean>(false)
   const [userId, setUserId] = useState<number | null>(null)
   const [isLoading, setIsLoading] = useState<boolean>(true)
+
+    const [searchQuery, setSearchQuery] = useState("");
+
+  const handleSearch = (query: string) => {
+    setSearchQuery(query);
+  };
 
   const handleLogout = () => {
     logout() 
@@ -106,6 +114,7 @@ function App() {
             userId={userId}
             onOpenPlaylist={handleOpenPlaylist}
             onOpenAlbum={handleOpenAlbum}
+            searchQuery={searchQuery}
           />
         )
 
@@ -150,6 +159,8 @@ function App() {
       case "mentions_legales":
         return <MentionsLegales />
 
+      case "contact":
+        return <Contact onNavigate={setPage} />
       default:
         return (
           <Accueil
@@ -157,6 +168,7 @@ function App() {
             userId={userId}
             onOpenPlaylist={handleOpenPlaylist}
             onOpenAlbum={handleOpenAlbum}
+            searchQuery={searchQuery}
           />
         )
 
@@ -169,6 +181,8 @@ function App() {
         onNavigate={setPage}
         isConnected={isConnected}
         onLogout={handleLogout}
+        currentPage={page}
+        onSearch={handleSearch}
       />
 
       <main>

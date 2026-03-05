@@ -6,7 +6,6 @@ type CartePlaylistProps = {
   id?: number
   title: string
   creator: string
-  pochette: string
   isConnected: boolean
   onAdd?: () => void
   onClick?: () => void

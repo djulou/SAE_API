@@ -362,6 +362,16 @@ def preparer_table_tracks(df_source):
         if col in tracks.columns:
             tracks[col] = tracks[col].fillna("").astype(str).str.strip().str.slice(0, 100)
 
+    if 'track_file' in tracks.columns:
+        # On utilise le domaine de stockage qui fonctionne
+        base_url = "https://files.freemusicarchive.org/storage-freemusicarchive-org/"
+        
+        tracks['preview'] = tracks['track_file'].apply(
+            lambda x: f"{base_url}{str(x).strip().lstrip('/')}" if pd.notna(x) and str(x).strip() != "" else None
+        )
+    else:
+        tracks['preview'] = None
+        
     # 8. AUTRES CHIFFRES
     if 'track_interest' in tracks.columns:
         tracks['track_interest'] = pd.to_numeric(tracks['track_interest'], errors='coerce')
@@ -374,7 +384,7 @@ def preparer_table_tracks(df_source):
 
     # 9. SÉLECTION FINALE
     cols_finales = [
-        "track_id", "track_title", "track_duration", 
+        "track_id", "track_title", "track_duration", "preview",
         "track_listens", "track_favorites", "track_interest", "track_comments",
         "track_date_created", "track_date_recorded", 
         "track_composer", "track_lyricist", "track_publisher", 

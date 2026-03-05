@@ -73,11 +73,14 @@ class TrackView(BaseModel):
     track_title: Optional[str] = None
     track_duration: Optional[float] = None
     track_interest: Optional[float] = None
+    track_listens: int = 0
     
+    preview:Optional[str]= None
+        
     album_id: Optional[int] = None
     album_title: Optional[str] = None
     album_image_file: Optional[str] = None
-    
+        
     artist_id: Optional[int] = None
     artist_name: Optional[str] = None
 

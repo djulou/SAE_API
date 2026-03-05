@@ -1,15 +1,15 @@
-import { useState, useRef } from "react"
-import Coeur from "./coeur"
-import GeneratedCover from "./GeneratedCover"
+import { useState, useRef, useEffect } from "react";
+import Coeur from "./coeur";
+import GeneratedCover from "./GeneratedCover";
 
 type LectureProps = {
-  trackId: number
-  title: string
-  artist: string
-  audioUrl: string
-  isConnected: boolean
-  onAdd?: () => void
-}
+  trackId: number;
+  title: string;
+  artist: string;
+  audioUrl: string;
+  isConnected: boolean;
+  onAdd?: () => void;
+};
 
 function Lecture({
   trackId,
@@ -17,230 +17,207 @@ function Lecture({
   artist,
   audioUrl,
   isConnected,
-  onAdd
+  onAdd,
 }: LectureProps) {
+  const [isPlaying, setIsPlaying] = useState(true);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
+  const [isFavorite, setIsFavorite] = useState(false);
 
-  const [isFavorite, setIsFavorite] = useState(false)
-  const [isPlaying, setIsPlaying] = useState(false)
-  const [currentTime, setCurrentTime] = useState(0)
-  const [duration, setDuration] = useState(0)
-  const [volume, setVolume] = useState(1)
+  // --- Nouveaux états pour le Volume ---
+  const [volume, setVolume] = useState(0.7); // Volume par défaut à 70%
+  const [showVolumeBar, setShowVolumeBar] = useState(false);
+  const [isMuted, setIsMuted] = useState(false);
 
-  const audioRef = useRef<HTMLAudioElement | null>(null)
+  const audioRef = useRef<HTMLAudioElement>(null);
 
-  const toggleFavorite = async () => {
-    if (!isConnected) return
-
-    const token = localStorage.getItem("token")
-    if (!token) return
-
-    try {
-
-      const url = !isFavorite
-        ? "http://127.0.0.1:8000/trackUserFavorite"
-        : `http://127.0.0.1:8000/trackUserFavorite/${trackId}`
-
-      const method = !isFavorite ? "POST" : "DELETE"
-
-      const options: RequestInit = {
-        method,
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
-        }
-      }
-
-      if (!isFavorite) {
-        options.body = JSON.stringify({ track_id: trackId })
-      }
-
-      const res = await fetch(url, options)
-
-      if (res.ok) {
-        setIsFavorite(!isFavorite)
-      }
-
-    } catch (error) {
-      console.error("Erreur lors du toggle favori :", error)
+  useEffect(() => {
+    if (audioRef.current) {
+      isPlaying ? audioRef.current.play() : audioRef.current.pause();
     }
-  }
+  }, [isPlaying, audioUrl]);
 
-  const togglePlay = () => {
-    if (!audioRef.current) return
-
-    if (isPlaying) {
-      audioRef.current.pause()
-    } else {
-      audioRef.current.play()
+  // Appliquer le volume à l'élément audio
+  useEffect(() => {
+    if (audioRef.current) {
+      audioRef.current.volume = isMuted ? 0 : volume;
     }
+  }, [volume, isMuted]);
 
-    setIsPlaying(!isPlaying)
-  }
+  const togglePlay = () => setIsPlaying(!isPlaying);
 
   const handleTimeUpdate = () => {
-    if (!audioRef.current) return
-    setCurrentTime(audioRef.current.currentTime)
-  }
+    if (audioRef.current) setCurrentTime(audioRef.current.currentTime);
+  };
 
   const handleLoadedMetadata = () => {
-    if (!audioRef.current) return
-    setDuration(audioRef.current.duration)
-  }
+    if (audioRef.current) setDuration(audioRef.current.duration);
+  };
 
   const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const time = Number(e.target.value)
-
+    const time = Number(e.target.value);
     if (audioRef.current) {
-      audioRef.current.currentTime = time
+      audioRef.current.currentTime = time;
+      setCurrentTime(time);
     }
+  };
 
-    setCurrentTime(time)
-  }
+  const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = parseFloat(e.target.value);
+    setVolume(val);
+    if (val > 0) setIsMuted(false);
+  };
 
-  const handleVolume = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const vol = Number(e.target.value)
-
-    if (audioRef.current) {
-      audioRef.current.volume = vol
-    }
-
-    setVolume(vol)
-  }
+  const toggleMute = () => setIsMuted(!isMuted);
 
   const formatTime = (time: number) => {
-    const minutes = Math.floor(time / 60)
-    const seconds = Math.floor(time % 60)
-    return `${minutes}:${seconds.toString().padStart(2, "0")}`
-  }
+    const mins = Math.floor(time / 60);
+    const secs = Math.floor(time % 60);
+    return `${mins}:${secs.toString().padStart(2, "0")}`;
+  };
+
+  const progressPercent = duration ? (currentTime / duration) * 100 : 0;
 
   return (
     <div className="lecture-page">
-        <section className="info-image">
+      <audio
+        ref={audioRef}
+        src={audioUrl}
+        onTimeUpdate={handleTimeUpdate}
+        onLoadedMetadata={handleLoadedMetadata}
+        autoPlay
+      />
+
+      <section className="info-image">
         <div className="pochette-wrapper">
-        <GeneratedCover title={title} />
-
-        <div className="actions-overlay">
-          <Coeur
-            isFavorite={isFavorite}
-            isConnected={isConnected}
-            toggleFavorite={toggleFavorite}
-          />
+          <GeneratedCover title={title} />
         </div>
-        
-      </div>
-      <article className="description">
-        <div>
-          <h3>{title}</h3>
-          <p>{artist}</p>
-        </div>
-
-        {isConnected && onAdd && (
-          <button
-            className="btn-plus"
-            onClick={(e) => {
-              e.stopPropagation()
-              onAdd()
-            }}
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="30"
-              height="30"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth="2.75"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M5 12h14" />
-              <path d="M12 5v14" />
-            </svg>
-          </button>
-        )}
-      </article>
+        <article className="description">
+          <div className="text-info">
+            <h3 style={{ color: "#ffffff", margin: 0 }}>{title}</h3>
+            <p style={{ color: "var(--color-text-muted)", margin: 0 }}>
+              {artist}
+            </p>
+          </div>
+        </article>
       </section>
 
-      {/* <article className="description">
-        <div>
-          <h3>{title}</h3>
-          <p>{artist}</p>
+      <div className="ecoute-musique">
+        <div
+          className="player-controls"
+          style={{
+            display: "flex",
+            justifyContent: "center",
+          }}
+        >
+          <button
+            onClick={togglePlay}
+            className="btn-main-play"
+            style={{ background: "none", border: "none", cursor: "pointer" }}
+          >
+            <svg viewBox="0 0 24 24" fill="#ffffff" width="32" height="32">
+              {isPlaying ? (
+                <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" />
+              ) : (
+                <path d="M8 5v14l11-7z" />
+              )}
+            </svg>
+          </button>
         </div>
+
+        <div className="progress-container">
+          <span className="time-label">{formatTime(currentTime)}</span>
+          <div className="custom-progress-bar">
+            <div
+              className="progress-fill"
+              style={{ width: `${progressPercent}%` }}
+            />
+            <input
+              type="range"
+              min="0"
+              max={duration || 0}
+              value={currentTime}
+              onChange={handleSeek}
+              className="progress-slider"
+            />
+          </div>
+          <span className="time-label">{formatTime(duration)}</span>
+        </div>
+      </div>
+
+      <div
+        className="player-actions"
+        style={{ display: "flex", alignItems: "center", gap: "15px" }}
+      >
+        <div
+          className="volume-control-container"
+          onMouseEnter={() => setShowVolumeBar(true)}
+          onMouseLeave={() => setShowVolumeBar(false)}
+        >
+          {/* La barre de volume qui flotte au-dessus */}
+          {showVolumeBar && (
+            <div className="volume-popover">
+              <input
+                type="range"
+                min="0"
+                max="1"
+                step="0.01"
+                value={isMuted ? 0 : volume}
+                onChange={handleVolumeChange}
+                className="volume-slider-vertical"
+              />
+            </div>
+          )}
+
+          {/* L'icône cliquable */}
+          <button onClick={toggleMute} className="btn-volume-icon">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="#ffffff">
+              {isMuted || volume === 0 ? (
+                <path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z" />
+              ) : (
+                <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z" />
+              )}
+            </svg>
+          </button>
+        </div>
+
+        <Coeur
+          isFavorite={isFavorite}
+          isConnected={isConnected}
+          toggleFavorite={(e) => {
+            e.stopPropagation();
+            setIsFavorite(!isFavorite);
+          }}
+        />
 
         {isConnected && onAdd && (
           <button
             className="btn-plus"
-            onClick={(e) => {
-              e.stopPropagation()
-              onAdd()
+            onClick={onAdd}
+            style={{
+              background: "transparent",
+              border: "none",
+              padding: "5px",
+              display: "flex",
+              alignItems: "center",
+              cursor: "pointer",
             }}
           >
             <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="30"
-              height="30"
               viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth="2.75"
-              strokeLinecap="round"
-              strokeLinejoin="round"
+              width="24"
+              height="24"
+              fill="none"
+              stroke="#ffffff"
+              strokeWidth="2.5"
             >
-              <path d="M5 12h14" />
-              <path d="M12 5v14" />
+              <path d="M12 5v14M5 12h14" />
             </svg>
           </button>
         )}
-      </article> */}
-
-      <div className="ecoute-musique">
-
-        <div className="audio-player">
-
-          <audio
-            ref={audioRef}
-            src={audioUrl}
-            onTimeUpdate={handleTimeUpdate}
-            onLoadedMetadata={handleLoadedMetadata}
-          />
-
-          <button onClick={togglePlay} className="play-btn">
-            {isPlaying ? "Pause" : "Play"}
-          </button>
-
-          <div className="progress-container">
-
-            <span>{formatTime(currentTime)}</span>
-
-            <input
-              type="range"
-              min={0}
-              max={duration}
-              value={currentTime}
-              onChange={handleSeek}
-            />
-
-            <span>{formatTime(duration)}</span>
-
-          </div>
-
-        </div>
-
       </div>
-
-      <div className="volume">
-
-        <input
-          type="range"
-          min={0}
-          max={1}
-          step={0.01}
-          value={volume}
-          onChange={handleVolume}
-        />
-
-      </div>
-
     </div>
-  )
+  );
 }
 
-export default Lecture
+export default Lecture;

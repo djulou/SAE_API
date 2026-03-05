@@ -9,11 +9,14 @@ type HeaderProps = {
   onNavigate: (page: Page) => void
   isConnected: boolean
   onLogout?: () => void
+  currentPage: Page
+  onSearch: (query: string) => void;
 }
 
-function Header({ onNavigate, isConnected, onLogout }: HeaderProps) {
+function Header({ onNavigate, isConnected, onLogout, currentPage, onSearch }: HeaderProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
+  const [tempSearch, setTempSearch] = useState("");
 
   // Fermer le menu si on clique en dehors
   useEffect(() => {
@@ -31,18 +34,32 @@ function Header({ onNavigate, isConnected, onLogout }: HeaderProps) {
     setIsMenuOpen(false) // Ferme le menu après navigation
   }
 
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      onSearch(tempSearch); // On envoie la recherche au parent
+    }
+  };
+
   return (
     <header className="header">
       <button className="button-discret" onClick={() => onNavigate("accueil")}>
         <img src={Logo} className="logo" alt="site logo" />
       </button>
 
-      <div className="search-bar">
-        <input
-          type="text"
-          placeholder="Rechercher une musique, un artiste, une playlist..."
-        />
-      </div>
+      {currentPage == "accueil" && (
+        <>
+        <div className="search-bar">
+          <input
+            type="text"
+            placeholder="Rechercher une musique, un artiste, une playlist..."
+            value={tempSearch}
+            onChange={(e) => setTempSearch(e.target.value)}
+            onKeyDown={handleKeyDown}
+          />
+        </div>
+        </>
+      )}
 
       <nav>
         {!isConnected ? (

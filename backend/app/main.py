@@ -1,9 +1,10 @@
-from fastapi import FastAPI, Depends, HTTPException, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, Request, Depends, HTTPException, WebSocket, WebSocketDisconnect
 from typing import List, Optional
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy import create_engine, or_, func
 
+import time
 import bcrypt
 
 from models import ( 
@@ -37,6 +38,8 @@ import pandas as pd
 
 load_dotenv()
 
+
+
 # Configuration JWT
 SECRET_KEY = os.getenv("SECRET_KEY")
 if SECRET_KEY is None:
@@ -45,6 +48,7 @@ if SECRET_KEY is None:
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
+optional_oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login", auto_error=False)
 
 
 ###########################################
@@ -52,6 +56,24 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
 ###########################################
 
 app = FastAPI()
+
+
+###########################################
+##      AUTORISATIONS & LANCEMENT        ##
+###########################################
+
+origins = [
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # Configuration BDD
 db_host = os.getenv("DB_HOST", "localhost")
@@ -169,6 +191,38 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depend
     
 ######## GET ##
 
+@app.get("/search/tracks", response_model=List[schema.TrackView])
+def search_tracks(
+    query: str, 
+    db: Session = Depends(get_db), 
+    token: Optional[str] = Depends(optional_oauth2_scheme)
+):
+    results = db.query(ViewTrackMaterialise).filter(
+        or_(
+            ViewTrackMaterialise.track_title.ilike(f"%{query}%"),
+            ViewTrackMaterialise.artist_name.ilike(f"%{query}%")
+        )
+    ).limit(50).all()
+
+    if token:
+        try:
+            # On décode le token pour identifier l'utilisateur
+            payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+            user_id = payload.get("sub")
+            
+            if user_id:
+                # On crée l'entrée dans l'historique
+                new_history = SearchHistory(
+                    user_id=int(user_id),
+                    history_query=query
+                )
+                db.add(new_history)
+                db.commit()
+        except Exception as e:
+            print(f"Token invalide pour l'historique : {e}")
+
+    return results
+
 @app.get("/artist") 
 def get_all_artists(limit: Optional[int] = None, db: Session = Depends(get_db)):
     query = db.query(Artist)
@@ -245,11 +299,36 @@ def get_all_albums(limit: Optional[int] = None, db: Session = Depends(get_db)):
     return results
 
 
+@app.get("/topAlbum", response_model=List[schema.Album]) 
+def get_top_albums(limit: Optional[int] = 20, db: Session = Depends(get_db)):
+
+    # On sélectionne les colonnes de l'album ET le nom de l'artiste
+    query = db.query(
+        Album.album_id,
+        Album.album_title,
+        Album.album_listens,
+        Album.album_image_file,
+        
+        func.min(Artist.artist_name).label("artist_name") 
+    ).join(
+        ArtistAlbumTrack, Album.album_id == ArtistAlbumTrack.album_id
+    ).join(
+        Artist, Artist.artist_id == ArtistAlbumTrack.artist_id
+    ).group_by(
+        Album.album_id,
+        Album.album_title,
+        Album.album_listens,
+        Album.album_image_file
+    ).order_by(
+        Album.album_listens.desc()
+    ).limit(limit).all()
+
+    return query
+
 @app.get("/album/{album_id}", response_model=schema.AlbumDetailed) 
 def get_one_album(album_id: int, db: Session = Depends(get_db)):
     # On récupère les infos de l'album et le nom du premier artiste trouvé pour cet album
     # Note: On utilise ArtistAlbumTrack pour le lien
-    from sqlalchemy import func
     
     album = db.query(Album).filter(Album.album_id == album_id).first()
     if not album:
@@ -300,12 +379,40 @@ def get_tracks(limit: Optional[int] = None, db: Session = Depends(get_db)):
     
     return query.all()
 
+@app.get("/topTrack", response_model=List[schema.TrackView])
+def get_top_tracks(limit: Optional[int] = 20, db: Session = Depends(get_db)):
+
+    query = db.query(ViewTrackMaterialise).order_by(
+        ViewTrackMaterialise.track_listens.desc()
+    )
+    
+    if limit is not None:
+        query = query.limit(limit)
+
+    results = query.all()
+
+    if not results:
+        return []
+
+    return results
+
 @app.get("/playlist", response_model=List[schema.Playlist]) 
 def get_all_playlists(limit: Optional[int] = None, db: Session = Depends(get_db)):
     query = db.query(Playlist).order_by(Playlist.playlist_listens.desc())
     if limit is not None:
         query = query.limit(limit)
     return query.all()
+
+@app.get("/topPlaylist", response_model=List[schema.Playlist]) 
+def get_top_playlists(limit: int = 20, db: Session = Depends(get_db)):
+
+    playlists = db.query(Playlist).group_by(
+        Playlist.playlist_id
+    ).order_by(
+        Playlist.playlist_listens.desc()
+    ).limit(limit).all()
+
+    return playlists
 
 
 @app.get("/users/{user_id}/playlists", response_model=List[schema.Playlist])
@@ -986,6 +1093,30 @@ def remove_track_from_playlist(playlist_id: int, track_id: int, db: Session = De
     db.delete(link)
     db.commit()
     return {"message": "Piste retirée de la playlist"}
+
+
+stats = {
+    "total_requests": 0,
+    "avg_response_time": 0.0
+}
+
+@app.middleware("http")
+async def stats_middleware(request: Request, call_next):
+    start = time.time()
+    response = await call_next(request)
+    duration = time.time() - start
+
+    stats["total_requests"] += 1
+    stats["avg_response_time"] = (
+        (stats["avg_response_time"] * (stats["total_requests"] - 1) + duration)
+        / stats["total_requests"]
+    )
+
+    return response
+
+@app.get("/stats")
+def get_stats():
+    return stats
 
 ###########################################
 ##      AUTORISATIONS & LANCEMENT        ##
