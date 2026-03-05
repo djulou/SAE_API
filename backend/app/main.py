@@ -1073,6 +1073,30 @@ def remove_track_from_playlist(playlist_id: int, track_id: int, db: Session = De
     db.commit()
     return {"message": "Piste retirée de la playlist"}
 
+
+stats = {
+    "total_requests": 0,
+    "avg_response_time": 0.0
+}
+
+@app.middleware("http")
+async def stats_middleware(request: Request, call_next):
+    start = time.time()
+    response = await call_next(request)
+    duration = time.time() - start
+
+    stats["total_requests"] += 1
+    stats["avg_response_time"] = (
+        (stats["avg_response_time"] * (stats["total_requests"] - 1) + duration)
+        / stats["total_requests"]
+    )
+
+    return response
+
+@app.get("/stats")
+def get_stats():
+    return stats
+
 ###########################################
 ##      AUTORISATIONS & LANCEMENT        ##
 ###########################################
