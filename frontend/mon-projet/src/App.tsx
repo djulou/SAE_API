@@ -16,6 +16,7 @@ import Contact from "./Contact"
 
 import PlaylistDetail from "./components/PlaylistDetail"
 import AlbumDetail from "./components/AlbumDetail"
+import ArtistDetail from "./components/ArtistDetail" // Ajout de l'import
 
 
 import { getCurrentUser, logout } from "./services/authService"
@@ -26,6 +27,7 @@ function App() {
 
   const [selectedPlaylistId, setSelectedPlaylistId] = useState<number | null>(null)
   const [selectedAlbumId, setSelectedAlbumId] = useState<number | null>(null)
+  const [selectedArtistId, setSelectedArtistId] = useState<number | null>(null) // Ajout de l'état
 
 
   const [isConnected, setIsConnected] = useState<boolean>(false)
@@ -92,6 +94,13 @@ function App() {
     setPage("album_detail")
   }
 
+   const handleOpenArtist = (id: number) => { // Ajout du handler
+    setSelectedArtistId(id)
+    setPage("artist_detail")
+  }
+
+
+
 
   const renderContent = () => {
     if (isLoading) return <div className="loading">Vérification de la session...</div>
@@ -114,6 +123,7 @@ function App() {
             userId={userId}
             onOpenPlaylist={handleOpenPlaylist}
             onOpenAlbum={handleOpenAlbum}
+            onOpenArtist={handleOpenArtist} // Ajout de la prop
             searchQuery={searchQuery}
           />
         )
@@ -131,6 +141,14 @@ function App() {
         return (
           <AlbumDetail
             albumId={selectedAlbumId!}
+            isConnected={isConnected}
+          />
+        )
+
+      case "artist_detail":
+        return (
+          <ArtistDetail
+            artistId={selectedArtistId!}
             isConnected={isConnected}
           />
         )
@@ -168,6 +186,7 @@ function App() {
             userId={userId}
             onOpenPlaylist={handleOpenPlaylist}
             onOpenAlbum={handleOpenAlbum}
+            onOpenArtist={handleOpenArtist}
             searchQuery={searchQuery}
           />
         )

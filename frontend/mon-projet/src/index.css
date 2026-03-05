@@ -254,7 +254,7 @@ button:focus-visible {
 
 .carte-chanson,
 .carte-album,
-.carte-playlist {
+.carte-artist {
   position: relative;
   width: 12em;
   min-width: 12em;
@@ -268,13 +268,13 @@ button:focus-visible {
 
 .carte-chanson:hover,
 .carte-album:hover,
-.carte-playlist:hover {
+.carte-artist:hover {
 
   transform: translateY(-6px);
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
 }
 
-.carte-playlist>.description>h3 {
+.carte-artist>.description>h3 {
   background-color: gold;
   color: #000;
   text-align: center;
@@ -282,14 +282,14 @@ button:focus-visible {
 
 .carte-chanson>.description,
 .carte-album>.description,
-.carte-playlist>.description {
+.carte-artist>.description {
   display: flex;
   justify-content: space-between;
 }
 
 .carte-chanson>.description>div,
 .carte-album>.description>div,
-.carte-playlist>.description>div {
+.carte-artist>.description>div {
   display: block
 }
 
@@ -1386,4 +1386,41 @@ button:focus-visible {
   background: var(--color-primary);
   border-radius: 50%;
   cursor: pointer;
+}
+
+/* Rend l'image de l'artiste ronde comme sur Spotify */
+.artist-image-circle {
+  border-radius: 50% !important;
+  overflow: hidden;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+}
+
+.artist-header {
+  align-items: center !important;
+}
+
+.artist-bio-preview {
+  color: var(--color-text-muted);
+  font-size: 0.9rem;
+  margin-top: 10px;
+  max-width: 600px;
+  line-height: 1.4;
+}
+
+.btn-outline {
+  background: transparent;
+  border: 1px solid var(--color-border);
+  color: white;
+  padding: 8px 24px;
+  border-radius: var(--radius-full);
+  font-weight: bold;
+  cursor: pointer;
+  text-transform: uppercase;
+  font-size: 0.8rem;
+  letter-spacing: 1px;
+}
+
+.btn-outline:hover {
+  border-color: white;
+  transform: scale(1.05);
 }

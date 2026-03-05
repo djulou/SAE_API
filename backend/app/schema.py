@@ -66,6 +66,13 @@ class Track(TrackBase):
     class Config:
         from_attributes = True
 
+# Dans ton fichier schemas.py
+class ArtistDetailed(Artist): # Hérite de ton schéma Artist (qui a déjà artist_id, etc.)
+    artist_listens: int = 0
+    
+    class Config:
+        from_attributes = True
+        
 # ==================== Views Schemas ====================
 
 class TrackView(BaseModel):

@@ -9,27 +9,29 @@ type TrackData = {
   track_title: string;
   track_duration: number;
   artist_name?: string;
-  track_composer?: string;
+  album_title?: string;
   preview?: string;
 };
 
-type AlbumData = {
-  album_id: number;
-  album_title: string;
+type ArtistData = {
+  artist_id: number;
   artist_name: string;
-  album_image_file?: string;
-  album_listens: number;
-  track_count: number;
-  album_date_released?: string;
+  artist_bio?: string;
+  artist_location?: string;
+  artist_image_file?: string;
+  artist_favorites: number;
+  artist_listens?: number;
 };
 
-type AlbumDetailProps = {
-  albumId: number;
+type ArtistDetailProps = {
+  artistId: number;
   isConnected: boolean;
 };
 
-// --- COMPOSANT LIGNE DE MUSIQUE ---
-function AlbumTrackRow({
+// ============================================================================
+// SOUS-COMPOSANT : Ligne de musique
+// ============================================================================
+function ArtistTrackRow({
   track,
   index,
   isConnected,
@@ -60,9 +62,7 @@ function AlbumTrackRow({
       style={{ cursor: "pointer" }}
     >
       <div className="col-index">
-        {/* LOGIQUE : Bouton Play orange permanent. 
-            Si actif et non survolé -> Animation. 
-            Sinon (survolé ou inactif) -> Bouton Play orange */}
+        {/* LE BOUTON PLAY EST TOUJOURS VISIBLE (Sauf si la piste est active et non survolée) */}
         {isActive && !isHovered ? (
           <div className="playing-animation">
             <span className="bar"></span>
@@ -76,9 +76,9 @@ function AlbumTrackRow({
             width="20" 
             height="20" 
             style={{ 
-              color: "orange",
-              filter: isHovered ? "brightness(1.2)" : "none",
-              transition: "filter 0.2s"
+                color: "orange", 
+                filter: isHovered ? "brightness(1.2)" : "none",
+                transition: "filter 0.2s"
             }}
           >
             <path d="M8 5v14l11-7z" />
@@ -87,12 +87,13 @@ function AlbumTrackRow({
       </div>
 
       <div className="col-title">
-        <span className="track-name" style={{ color: isHovered || isActive ? "orange" : "var(--color-text)" }}>
+        <span 
+          className="track-name" 
+          style={{ color: isHovered || isActive ? "orange" : "var(--color-text)" }}
+        >
           {track.track_title}
         </span>
-        <span className="track-artist">
-          {track.artist_name || track.track_composer || "Artiste inconnu"}
-        </span>
+        <span className="track-artist">{track.album_title || "Single"}</span>
       </div>
 
       <div className="col-actions">
@@ -113,12 +114,11 @@ function AlbumTrackRow({
   );
 }
 
-// --- COMPOSANT PRINCIPAL ---
-export default function AlbumDetail({
-  albumId,
-  isConnected,
-}: AlbumDetailProps) {
-  const [album, setAlbum] = useState<AlbumData | null>(null);
+// ============================================================================
+// COMPOSANT PRINCIPAL
+// ============================================================================
+export default function ArtistDetail({ artistId, isConnected }: ArtistDetailProps) {
+  const [artist, setArtist] = useState<ArtistData | null>(null);
   const [tracks, setTracks] = useState<TrackData[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTrack, setActiveTrack] = useState<TrackData | null>(null);
@@ -127,73 +127,48 @@ export default function AlbumDetail({
     async function loadData() {
       setLoading(true);
       try {
-        const resA = await fetch(`http://127.0.0.1:8000/album/${albumId}`);
-        if (resA.ok) setAlbum(await resA.json());
+        const resA = await fetch(`http://127.0.0.1:8000/artist/${artistId}`);
+        if (resA.ok) setArtist(await resA.json());
 
-        const resT = await fetch(`http://127.0.0.1:8000/album/${albumId}/tracks`);
+        const resT = await fetch(`http://127.0.0.1:8000/artist/${artistId}/tracks`);
         if (resT.ok) setTracks(await resT.json());
       } catch (err) {
-        console.error("Erreur chargement album:", err);
+        console.error("Erreur chargement artiste:", err);
       } finally {
         setLoading(false);
       }
     }
     loadData();
-  }, [albumId]);
+  }, [artistId]);
 
-  if (loading) return <div className="loading">Chargement de l'album...</div>;
+  if (loading) return <div className="loading">Chargement du profil artiste...</div>;
 
   return (
     <div className="playlist-detail-container" style={{ paddingBottom: activeTrack ? "120px" : "40px" }}>
-      <header className="playlist-header">
-        <div className="playlist-cover-large">
-          <GeneratedCover title={album?.album_title || "Album"} />
+      <header className="playlist-header artist-header">
+        <div className="playlist-cover-large artist-image-circle">
+          <GeneratedCover title={artist?.artist_name || "Artiste"} />
         </div>
 
         <div className="playlist-info">
-          <span className="playlist-type">ALBUM</span>
-          <h1 className="playlist-title-huge">{album?.album_title}</h1>
+          <span className="playlist-type">ARTISTE</span>
+          <h1 className="playlist-title-huge">{artist?.artist_name}</h1>
           <div className="playlist-meta-info">
-            <span className="creator-bold">{album?.artist_name || "Artiste"}</span>
+            <span>{artist?.artist_location || "Lieu inconnu"}</span>
             <span className="bullet">•</span>
-            <span>{album?.album_date_released ? new Date(album.album_date_released).getFullYear() : "N/A"}</span>
-            <span className="bullet">•</span>
-            <span>{tracks.length} titres</span>
-            <span className="bullet">•</span>
-            <span>{album?.album_listens} écoutes</span>
+            <span>{artist?.artist_listens?.toLocaleString() || 0} écoutes mensuelles</span>
           </div>
+          {artist?.artist_bio && (
+            <p className="artist-bio-preview">{artist.artist_bio.substring(0, 150)}...</p>
+          )}
         </div>
       </header>
-
-      <div className="playlist-action-bar">
-        <button className="btn-play-large" onClick={() => tracks.length > 0 && setActiveTrack(tracks[0])}>
-          <svg viewBox="0 0 24 24" fill="black" width="28" height="28" style={{ marginLeft: "4px" }}>
-            <path d="M8 5v14l11-7z" />
-          </svg>
-        </button>
-      </div>
-
+      
       <div className="tracklist-container">
-        <div className="tracklist-header">
-          {/* On remplace le "#" par une icône Play vide ou on laisse vide pour l'alignement */}
-          <div className="col-index">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16">
-               <path d="M8 5v14l11-7z" />
-            </svg>
-          </div>
-          <div className="col-title">Titre</div>
-          <div className="col-actions"></div>
-          <div className="col-duration">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16">
-              <circle cx="12" cy="12" r="10"></circle>
-              <polyline points="12 6 12 12 16 14"></polyline>
-            </svg>
-          </div>
-        </div>
-
+        <h2 style={{ marginBottom: '20px', fontSize: '1.5rem', color: '#fff' }}>Populaires</h2>
         <div className="tracks-list">
-          {tracks.map((track, idx) => (
-            <AlbumTrackRow
+          {tracks.slice(0, 10).map((track, idx) => (
+            <ArtistTrackRow
               key={track.track_id}
               track={track}
               index={idx}
@@ -211,10 +186,9 @@ export default function AlbumDetail({
             key={activeTrack.track_id}
             trackId={activeTrack.track_id}
             title={activeTrack.track_title}
-            artist={album?.artist_name || "Artiste inconnu"}
+            artist={artist?.artist_name || "Artiste"}
             audioUrl={activeTrack.preview || ""}
             isConnected={isConnected}
-            onAdd={() => console.log("Ajout playlist")}
           />
           <button className="btn-close-player" onClick={() => setActiveTrack(null)}>
             &times;

@@ -2,7 +2,7 @@ from fastapi import FastAPI, Request, Depends, HTTPException, WebSocket, WebSock
 from typing import List, Optional
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session, sessionmaker
-from sqlalchemy import create_engine, or_, func
+from sqlalchemy import create_engine, or_, func, text
 
 import time
 import bcrypt
@@ -232,14 +232,47 @@ def get_all_artists(limit: Optional[int] = None, db: Session = Depends(get_db)):
     
     return query.all()
 
-@app.get("/artist/{artist_id}", response_model=List[schema.Artist]) 
+@app.get("/artist/{artist_id}", response_model=schema.ArtistDetailed) # Retrait de List[]
 def get_one_artist(artist_id: int, db: Session = Depends(get_db)):
     artist = db.query(Artist).filter(Artist.artist_id == artist_id).first()
-    
-    if artist is None:
-        raise HTTPException(status_code=404, detail="Album non trouvé")
-        
+    if not artist:
+        raise HTTPException(status_code=404, detail="Artist not found")
     return artist
+
+@app.get("/topArtist", response_model=List[schema.ArtistDetailed])
+def get_top_artists(limit: Optional[int] = 20, db: Session = Depends(get_db)):
+    query = db.query(
+        Artist.artist_id,
+        Artist.artist_name,
+        Artist.artist_bio,
+        Artist.artist_image_file,
+        Artist.artist_location,
+        func.sum(Album.album_listens).label("artist_listens")
+    ).join(
+        ArtistAlbumTrack, Artist.artist_id == ArtistAlbumTrack.artist_id
+    ).join(
+        Album, ArtistAlbumTrack.album_id == Album.album_id
+    ).group_by(
+        Artist.artist_id,
+        Artist.artist_name,
+        Artist.artist_bio,
+        Artist.artist_image_file,
+        Artist.artist_location
+    ).order_by(
+        func.sum(Album.album_listens).desc()
+    ).limit(limit).all()
+
+    return query
+
+@app.get("/artist/{artist_id}/tracks", response_model=List[schema.TrackView])
+def get_artist_tracks(artist_id: int, db: Session = Depends(get_db)):
+    # On va chercher dans la View_Track_Materialise pour avoir toutes les infos
+    # ou on fait la jointure manuelle
+    tracks = db.query(ViewTrackMaterialise).filter(
+        ViewTrackMaterialise.artist_id == artist_id
+    ).order_by(ViewTrackMaterialise.track_listens.desc()).limit(10).all()
+    
+    return tracks
 
 @app.get("/album", response_model=List[schema.AlbumDetailed]) 
 def get_all_albums(limit: Optional[int] = None, db: Session = Depends(get_db)):

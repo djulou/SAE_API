@@ -44,7 +44,7 @@ export default function AddToPlaylistModal({ isOpen, onClose, trackId, userId }:
     const handleCreatePlaylist = async () => {
         if (!newPlaylistName.trim() || !userId) return;
         try {
-            const newPlaylist = await createPlaylist(userId, newPlaylistName);
+            const newPlaylist = await createPlaylist(newPlaylistName, userId);
             setPlaylists((prev) => [...prev, newPlaylist]);
             setSelectedPlaylistIds((prev) => [...prev, newPlaylist.playlist_id]); // Auto-select
             setCreating(false);

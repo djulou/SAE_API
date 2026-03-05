@@ -1,24 +1,23 @@
-import { useState, useEffect } from "react"
-import Carousel from "./components/Carousel"
-import CarteChanson from "./components/carte_chanson"
-import CartePlaylist from "./components/carte_playlist"
-import CarteAlbum from "./components/carte_album"
-import AddToPlaylistModal from "./components/AddToPlaylistModal"
+import { useState, useEffect } from "react";
+import Carousel from "./components/Carousel";
+import CarteChanson from "./components/carte_chanson";
+import CarteArtist from "./components/carte_artist";
+import CarteAlbum from "./components/carte_album";
+import AddToPlaylistModal from "./components/AddToPlaylistModal";
 
-import { getChansons } from "./services/chansonService"
-import type { Playlist } from "./types/Playlist"
-import type { Album } from "./types/Album"
+import { getChansons } from "./services/chansonService";
+import type { Playlist } from "./types/Playlist";
+import type { Album } from "./types/Album";
 
-
-// 
+//
 type AccueilProps = {
-  isConnected: boolean
-  userId: number | null
-  onOpenPlaylist: (id: number) => void
-  onOpenAlbum: (id: number) => void
+  isConnected: boolean;
+  userId: number | null;
+  onOpenPlaylist: (id: number) => void;
+  onOpenAlbum: (id: number) => void;
+  onOpenArtist: (id: number) => void;
   searchQuery: string;
-}
-
+};
 
 interface Track {
   track_id: number;
@@ -35,21 +34,32 @@ interface PlaylistDB {
   user_id: number;
 }
 
+interface Artist {
+  artist_id: number;
+  artist_name: string;
+  artist_listens: number;
+}
 
-export default function Accueil({ isConnected = false, userId, onOpenPlaylist, onOpenAlbum, searchQuery }: AccueilProps) {
-
+export default function Accueil({
+  isConnected = false,
+  userId,
+  onOpenPlaylist,
+  onOpenAlbum,
+  onOpenArtist,
+  searchQuery,
+}: AccueilProps) {
   const [tracks, setTracks] = useState<Track[]>([]);
   const [recoGRU, setRecoGRU] = useState<Track[]>([]);
   const [recoTF_IDF, setRecoTF_IDF] = useState<Track[]>([]);
   const [topAlbum, setTopAlbum] = useState<Album[]>([]);
   const [userPlaylists, setUserPlaylists] = useState<PlaylistDB[]>([]);
-  const [topPlaylists, setTopPlaylists] = useState<Playlist[]>([]);
 
   const [loadingTrack, setLoadingTrack] = useState(true);
   const [loadingGRU, setLoadingGRU] = useState(false);
   const [loadingTF_IDF, setLoadingTF_IDF] = useState(false);
   const [loadingTopAlbum, setLoadingTopAlbum] = useState(false);
-  const [loadingTopPlaylist, setLoadingTopPlaylist] = useState(false);
+  const [topArtists, setTopArtists] = useState<Artist[]>([]); // Renommé
+  const [loadingTopArtist, setLoadingTopArtist] = useState(false); // Renommé
 
   const [searchResults, setSearchResults] = useState<Track[]>([]);
   const [isSearching, setIsSearching] = useState(false);
@@ -57,7 +67,6 @@ export default function Accueil({ isConnected = false, userId, onOpenPlaylist, o
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-
     async function performSearch() {
       if (!searchQuery) {
         setSearchResults([]); // On vide si recherche vide
@@ -68,9 +77,9 @@ export default function Accueil({ isConnected = false, userId, onOpenPlaylist, o
       setIsSearching(true);
 
       const token = localStorage.getItem("token");
-      
+
       const headers: any = {
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
       };
 
       if (token) {
@@ -80,12 +89,12 @@ export default function Accueil({ isConnected = false, userId, onOpenPlaylist, o
       try {
         const response = await fetch(
           `http://127.0.0.1:8000/search/tracks?query=${encodeURIComponent(searchQuery)}`,
-          { 
+          {
             method: "GET",
-            headers: headers
-          }
+            headers: headers,
+          },
         );
-        
+
         const data = await response.json();
         setSearchResults(data);
       } catch (error) {
@@ -101,16 +110,19 @@ export default function Accueil({ isConnected = false, userId, onOpenPlaylist, o
         const res = await fetch("http://127.0.0.1:8000/topTrack?limit=100", {
           method: "GET",
           headers: {
-            "Content-Type": "application/json"
-          }
+            "Content-Type": "application/json",
+          },
         });
 
         if (res.ok) {
           const data = await res.json();
           setTracks(data);
         }
-      } catch (e) { console.error(e); }
-      finally { setLoadingTrack(false); }
+      } catch (e) {
+        console.error(e);
+      } finally {
+        setLoadingTrack(false);
+      }
     }
 
     async function loadGRU() {
@@ -121,21 +133,27 @@ export default function Accueil({ isConnected = false, userId, onOpenPlaylist, o
         const token = localStorage.getItem("token");
 
         if (token && isConnected) {
-          const res = await fetch("http://127.0.0.1:8000/users/gru_recommendations/detailed?limit=10", {
-            method: "GET",
-            headers: {
-              "Authorization": `Bearer ${token}`, // Envoi du badge d'accès
-              "Content-Type": "application/json"
-            }
-          });
+          const res = await fetch(
+            "http://127.0.0.1:8000/users/gru_recommendations/detailed?limit=10",
+            {
+              method: "GET",
+              headers: {
+                Authorization: `Bearer ${token}`, // Envoi du badge d'accès
+                "Content-Type": "application/json",
+              },
+            },
+          );
 
           if (res.ok) {
             const data = await res.json();
             setRecoGRU(data);
           }
         }
-      } catch (e) { console.error(e); }
-      finally { setLoadingGRU(false); }
+      } catch (e) {
+        console.error(e);
+      } finally {
+        setLoadingGRU(false);
+      }
     }
 
     async function loadTF_IDF() {
@@ -146,41 +164,48 @@ export default function Accueil({ isConnected = false, userId, onOpenPlaylist, o
         const token = localStorage.getItem("token");
 
         if (token && isConnected) {
-          const res = await fetch("http://127.0.0.1:8000/users/tf-idf_recommendations?limit=10", {
-            method: "GET",
-            headers: {
-              "Authorization": `Bearer ${token}`, // Envoi du badge d'accès
-              "Content-Type": "application/json"
-            }
-          });
+          const res = await fetch(
+            "http://127.0.0.1:8000/users/tf-idf_recommendations?limit=10",
+            {
+              method: "GET",
+              headers: {
+                Authorization: `Bearer ${token}`, // Envoi du badge d'accès
+                "Content-Type": "application/json",
+              },
+            },
+          );
 
           if (res.ok) {
             const data = await res.json();
             setRecoTF_IDF(data);
           }
         }
-      } catch (e) { console.error(e); }
-      finally { setLoadingTF_IDF(false); }
+      } catch (e) {
+        console.error(e);
+      } finally {
+        setLoadingTF_IDF(false);
+      }
     }
 
     async function loadTopAlbum() {
-
       setLoadingTopAlbum(true);
       try {
-
         const res = await fetch("http://127.0.0.1:8000/topAlbum?limit=20", {
           method: "GET",
           headers: {
-            "Content-Type": "application/json"
-          }
+            "Content-Type": "application/json",
+          },
         });
 
         if (res.ok) {
           const data = await res.json();
           setTopAlbum(data);
         }
-      } catch (e) { console.error(e); }
-      finally { setLoadingTopAlbum(false); }
+      } catch (e) {
+        console.error(e);
+      } finally {
+        setLoadingTopAlbum(false);
+      }
     }
 
     async function loadUserPlaylists() {
@@ -188,10 +213,13 @@ export default function Accueil({ isConnected = false, userId, onOpenPlaylist, o
       try {
         const token = localStorage.getItem("token");
         if (token) {
-          const res = await fetch(`http://127.0.0.1:8000/users/${userId}/playlists`, {
-            method: "GET",
-            headers: { "Authorization": `Bearer ${token}` }
-          });
+          const res = await fetch(
+            `http://127.0.0.1:8000/users/${userId}/playlists`,
+            {
+              method: "GET",
+              headers: { Authorization: `Bearer ${token}` },
+            },
+          );
           if (res.ok) {
             setUserPlaylists(await res.json());
           }
@@ -201,23 +229,23 @@ export default function Accueil({ isConnected = false, userId, onOpenPlaylist, o
       }
     }
 
-    async function loadTopPlaylists() {
-        setLoadingTopPlaylist(true);
-        try {
+    async function loadTopArtists() {
+      setLoadingTopArtist(true);
+      try {
+        const res = await fetch("http://127.0.0.1:8000/topArtist?limit=20", {
+          method: "GET",
+          headers: { "Content-Type": "application/json" },
+        });
 
-          const res = await fetch("http://127.0.0.1:8000/topPlaylist?limit=20", {
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json"
-            }
-          });
-
-          if (res.ok) {
-            const data = await res.json();
-            setTopPlaylists(data);
-          }
-        } catch (e) { console.error(e); }
-        finally { setLoadingTopPlaylist(false); }
+        if (res.ok) {
+          const data = await res.json();
+          setTopArtists(data); // On remplit le bon state
+        }
+      } catch (e) {
+        console.error(e);
+      } finally {
+        setLoadingTopArtist(false);
+      }
     }
 
     loadTracks();
@@ -225,68 +253,62 @@ export default function Accueil({ isConnected = false, userId, onOpenPlaylist, o
     loadTF_IDF();
     loadTopAlbum();
     loadUserPlaylists();
-    loadTopPlaylists();
+    loadTopArtists();
     performSearch();
   }, [isConnected, userId, searchQuery]);
 
-
-
-  const [modalOpen, setModalOpen] = useState(false)
-  const [selectedTrackId, setSelectedTrackId] = useState<number | null>(null)
-
+  const [modalOpen, setModalOpen] = useState(false);
+  const [selectedTrackId, setSelectedTrackId] = useState<number | null>(null);
 
   const handleAddTrack = (trackId: number) => {
-    setSelectedTrackId(trackId)
-    setModalOpen(true)
-  }
+    setSelectedTrackId(trackId);
+    setModalOpen(true);
+  };
 
-    return (
-    
-    <>     
+  return (
+    <>
       <div className="accueil-layout">
-         {isConnected && (
-        <nav className="menu-favoris">
-          <div>
-            <ul className="list-aime">
-              <li>Écouté récemment</li>
-              <li>Titres aimés</li>
-              <li>Albums</li>
-              <li>Artistes</li>
-            </ul>
-
-            <button
-              className="btn-add-playlist"
-              onClick={() => {
-                setSelectedTrackId(null)
-                setModalOpen(true)
-              }}
-            >
-              Ajouter une Playlist
-            </button>
-
-            {isConnected && (
-              <ul className="list-playlist">
-                {userPlaylists.map((pl) => (
-                  <li
-                    key={pl.playlist_id}
-                    className="playlist-menu-item"
-                    style={{ cursor: "pointer" }}
-                    onClick={() => onOpenPlaylist(pl.playlist_id)}
-                  >
-                    {pl.playlist_name}
-                  </li>
-                ))}
+        {isConnected && (
+          <nav className="menu-favoris">
+            <div>
+              <ul className="list-aime">
+                <li>Écouté récemment</li>
               </ul>
-            )}
-          </div>
-        </nav>
-         )}
-        <main className="accueil-content">
 
+              <button
+                className="btn-add-playlist"
+                onClick={() => {
+                  setSelectedTrackId(null);
+                  setModalOpen(true);
+                }}
+              >
+                Ajouter une Playlist
+              </button>
+
+              {isConnected && (
+                <ul className="list-playlist">
+                  {userPlaylists.map((pl) => (
+                    <li
+                      key={pl.playlist_id}
+                      className="playlist-menu-item"
+                      style={{ cursor: "pointer" }}
+                      onClick={() => onOpenPlaylist(pl.playlist_id)}
+                    >
+                      {pl.playlist_name}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          </nav>
+        )}
+        <main className="accueil-content">
           {searchQuery && (
             <>
               <h2>Résultats pour "{searchQuery}"</h2>
-              {isSearching ? <p>Recherche en cours...</p> : (
+              {isSearching ? (
+                <p>Recherche en cours...</p>
+              ) : (
                 <Carousel>
                   {searchResults.length > 0 ? (
                     searchResults.map((track) => (
@@ -309,7 +331,9 @@ export default function Accueil({ isConnected = false, userId, onOpenPlaylist, o
 
           <h2>Musiques Populaires</h2>
           {error ? (
-            <div style={{ color: 'red', textAlign: 'center', margin: '20px 0' }}>
+            <div
+              style={{ color: "red", textAlign: "center", margin: "20px 0" }}
+            >
               <p>⚠️ {error}</p>
             </div>
           ) : loadingTrack ? (
@@ -333,89 +357,90 @@ export default function Accueil({ isConnected = false, userId, onOpenPlaylist, o
 
           {isConnected && (
             <div className="reco-section">
+              <h2>Selon vos recherches</h2>
 
-                  <h2>Selon vos recherches</h2>
-
-                  {loadingGRU ? (
-                    <div>
-                      <p>Chargement des musiques...</p>
-                    </div>
-                  ) : (
-                    recoTF_IDF.length > 0 ? (
-                      <Carousel>
-                        {recoGRU.map((track) => (
-                          <CarteChanson
-                            key={track.track_id}
-                            trackId={track.track_id}
-                            title={track.track_title}
-                            artist={track.artist_name}
-                            // artist={track.artists.map(a => a.artist_name).join(", ")}
-                            pochette={track.album_image_file}
-                            isConnected={isConnected}
-                            onAdd={() => handleAddTrack(track.track_id)}
-                          />
-                        ))}
-                      </Carousel>
-                    ) : (
-                      <div>
-                        <p>Vous n'avez pas encore d'historique, faites quelques recherches !</p>
-                      </div>
-                    )
+              {loadingGRU ? (
+                <div>
+                  <p>Chargement des musiques...</p>
+                </div>
+              ) : recoTF_IDF.length > 0 ? (
+                <Carousel>
+                  {recoGRU.map((track) => (
+                    <CarteChanson
+                      key={track.track_id}
+                      trackId={track.track_id}
+                      title={track.track_title}
+                      artist={track.artist_name}
+                      // artist={track.artists.map(a => a.artist_name).join(", ")}
+                      pochette={track.album_image_file}
+                      isConnected={isConnected}
+                      onAdd={() => handleAddTrack(track.track_id)}
+                    />
+                  ))}
+                </Carousel>
+              ) : (
+                <div>
+                  <p>
+                    Vous n'avez pas encore d'historique, faites quelques
+                    recherches !
+                  </p>
+                </div>
               )}
 
-                <h2>Selon vos préférences</h2>
+              <h2>Selon vos préférences</h2>
 
-                {loadingTF_IDF ? (
-                  <div>
-                    <p>Chargement des musiques...</p>
-                  </div>
-                ) : (
-                  recoTF_IDF.length > 0 ? (
-                    <Carousel>
-                      {recoTF_IDF.map((track) => (
-                        <CarteChanson
-                          key={`reco-${track.track_id}`}
-                          trackId={track.track_id}
-                          title={track.track_title}
-                          artist={track.artist_name}
-                          pochette={track.album_image_file}
-                          isConnected={isConnected}
-                          onAdd={() => handleAddTrack(track.track_id)}
-                        />
-                      ))} 
-                    </Carousel>
-                  ) : (
-                    <div>
-                      <p>Vous n'avez pas encore de préférences, écoutez quelques musiques !</p>
-                    </div>
-                  )
-                )}
+              {loadingTF_IDF ? (
+                <div>
+                  <p>Chargement des musiques...</p>
+                </div>
+              ) : recoTF_IDF.length > 0 ? (
+                <Carousel>
+                  {recoTF_IDF.map((track) => (
+                    <CarteChanson
+                      key={`reco-${track.track_id}`}
+                      trackId={track.track_id}
+                      title={track.track_title}
+                      artist={track.artist_name}
+                      pochette={track.album_image_file}
+                      isConnected={isConnected}
+                      onAdd={() => handleAddTrack(track.track_id)}
+                    />
+                  ))}
+                </Carousel>
+              ) : (
+                <div>
+                  <p>
+                    Vous n'avez pas encore de préférences, écoutez quelques
+                    musiques !
+                  </p>
+                </div>
+              )}
             </div>
           )}
 
-          <h2>Playlists Populaires</h2>
-          {loadingTopPlaylist ? (
-            <div>
-              <p>Chargement des playlists...</p>
-            </div>
+          <h2>Artistes Populaires</h2>
+          {loadingTopArtist ? (
+            <p>Chargement des artistes...</p>
+          ) : topArtists.length > 0 ? (
+            <Carousel>
+              {topArtists.map((artist) => (
+                <CarteArtist
+                  key={artist.artist_id}
+                  title={artist.artist_name}
+                  creator={`${artist.artist_listens} écoutes`}
+                  isConnected={isConnected}
+                  onClick={() => {
+                    console.log(
+                      "1. Clic détecté dans Accueil pour l'id:",
+                      artist.artist_id,
+                    );
+                    onOpenArtist(artist.artist_id);
+                  }}
+                />
+              ))}
+            </Carousel>
           ) : (
-            topPlaylists.length > 0 ? (
-              <Carousel>
-                {topPlaylists.map((pl) => (
-                  <CartePlaylist
-                    key={pl.playlist_id}
-                    title={pl.playlist_name}
-                    creator={`${pl.playlist_listens} écoutes`}
-                    isConnected={isConnected}
-                    onClick={() => onOpenPlaylist(pl.playlist_id)}
-                  />
-                ))}
-              </Carousel>
-            ) : (
-              <div>
-                <p>La site n'a pas encore de playlist, créez en une !</p>
-              </div>
-            )
+            <p>Aucun artiste trouvé.</p>
           )}
 
           <h2>Albums recommandés</h2>
@@ -442,5 +467,5 @@ export default function Accueil({ isConnected = false, userId, onOpenPlaylist, o
         userId={userId}
       />
     </>
-  )
+  );
 }
