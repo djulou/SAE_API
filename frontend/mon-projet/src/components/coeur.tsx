@@ -12,7 +12,7 @@ export default function Coeur({ isFavorite, isConnected, toggleFavorite }: Coeur
         e.stopPropagation();
         if (isConnected) toggleFavorite(e);
       }}
-      className={`coeur ${isFavorite ? "active" : "inactive"}`}
+      className={`button-discret coeur ${isFavorite ? "active" : "inactive"} ${!isConnected ? "disabled" : ""}`}
       style={{ background: 'none', border: 'none', cursor: isConnected ? 'pointer' : 'default' }}
     >
       <svg 
