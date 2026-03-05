@@ -4,7 +4,6 @@ import CarteChanson from "./components/carte_chanson"
 import CartePlaylist from "./components/carte_playlist"
 import CarteAlbum from "./components/carte_album"
 import AddToPlaylistModal from "./components/AddToPlaylistModal"
-// import Lecture from "./components/Lecture"
 
 import { getChansons } from "./services/chansonService"
 import type { Playlist } from "./types/Playlist"
@@ -17,6 +16,7 @@ type AccueilProps = {
   userId: number | null
   onOpenPlaylist: (id: number) => void
   onOpenAlbum: (id: number) => void
+  searchQuery: string;
 }
 
 
@@ -36,7 +36,7 @@ interface PlaylistDB {
 }
 
 
-export default function Accueil({ isConnected = false, userId, onOpenPlaylist, onOpenAlbum }: AccueilProps) {
+export default function Accueil({ isConnected = false, userId, onOpenPlaylist, onOpenAlbum, searchQuery }: AccueilProps) {
 
   const [tracks, setTracks] = useState<Track[]>([]);
   const [recoGRU, setRecoGRU] = useState<Track[]>([]);
@@ -51,9 +51,50 @@ export default function Accueil({ isConnected = false, userId, onOpenPlaylist, o
   const [loadingTopAlbum, setLoadingTopAlbum] = useState(false);
   const [loadingTopPlaylist, setLoadingTopPlaylist] = useState(false);
 
+  const [searchResults, setSearchResults] = useState<Track[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+
+    async function performSearch() {
+      if (!searchQuery) {
+        setSearchResults([]); // On vide si recherche vide
+        setIsSearching(false);
+        return;
+      }
+
+      setIsSearching(true);
+
+      const token = localStorage.getItem("token");
+      
+      const headers: any = {
+        "Content-Type": "application/json"
+      };
+
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
+
+      try {
+        const response = await fetch(
+          `http://127.0.0.1:8000/search/tracks?query=${encodeURIComponent(searchQuery)}`,
+          { 
+            method: "GET",
+            headers: headers
+          }
+        );
+        
+        const data = await response.json();
+        setSearchResults(data);
+      } catch (error) {
+        console.error("Erreur recherche:", error);
+      } finally {
+        setIsSearching(false);
+      }
+    }
+
     async function loadTracks() {
       setError(null);
       try {
@@ -173,7 +214,6 @@ export default function Accueil({ isConnected = false, userId, onOpenPlaylist, o
 
           if (res.ok) {
             const data = await res.json();
-            console.log(data)
             setTopPlaylists(data);
           }
         } catch (e) { console.error(e); }
@@ -186,7 +226,8 @@ export default function Accueil({ isConnected = false, userId, onOpenPlaylist, o
     loadTopAlbum();
     loadUserPlaylists();
     loadTopPlaylists();
-  }, [isConnected, userId]);
+    performSearch();
+  }, [isConnected, userId, searchQuery]);
 
 
 
@@ -201,8 +242,7 @@ export default function Accueil({ isConnected = false, userId, onOpenPlaylist, o
 
     return (
     
-    <>
-     
+    <>     
       <div className="accueil-layout">
          {isConnected && (
         <nav className="menu-favoris">
@@ -243,6 +283,29 @@ export default function Accueil({ isConnected = false, userId, onOpenPlaylist, o
          )}
         <main className="accueil-content">
 
+          {searchQuery && (
+            <>
+              <h2>Résultats pour "{searchQuery}"</h2>
+              {isSearching ? <p>Recherche en cours...</p> : (
+                <Carousel>
+                  {searchResults.length > 0 ? (
+                    searchResults.map((track) => (
+                      <CarteChanson
+                        key={`search-${track.track_id}`}
+                        trackId={track.track_id}
+                        title={track.track_title}
+                        artist={track.artist_name}
+                        pochette={track.album_image_file}
+                        isConnected={isConnected}
+                      />
+                    ))
+                  ) : (
+                    <p>Aucun résultat trouvé.</p>
+                  )}
+                </Carousel>
+              )}
+            </>
+          )}
 
           <h2>Musiques Populaires</h2>
           {error ? (
@@ -355,38 +418,19 @@ export default function Accueil({ isConnected = false, userId, onOpenPlaylist, o
             )
           )}
 
-          <h2>Albums Populaires</h2>
-
-          {loadingTopAlbum ? (
-            <div>
-              <p>Chargement des albums...</p>
-            </div>
-          ) : (
-            <>
-            <Carousel>
-              {topAlbum.map((album) => (
-                <CarteAlbum
-                  key={album.album_id}
-                  title={album.album_title}
-                  artist={album.artist_name || "Artiste inconnu"}
-                  pochette={album.album_image_file}
-                  isConnected={isConnected}
-                  onClick={() => onOpenAlbum(album.album_id)}
-                />
-              ))}
-            </Carousel>
-            </>
-          )}
-          {/* <Lecture 
-              trackId={1}
-              title={"reine des neiges"}
-              artist={ "Artiste inconnu"}
-              audioUrl=""
-
-              isConnected={isConnected}> 
-              onAdd={}
-              </Lecture> */}
-
+          <h2>Albums recommandés</h2>
+          <Carousel>
+            {topAlbum.map((album) => (
+              <CarteAlbum
+                key={album.album_id}
+                title={album.album_title}
+                artist={album.artist_name || "Artiste inconnu"}
+                pochette={album.album_image_file}
+                isConnected={isConnected}
+                onClick={() => onOpenAlbum(album.album_id)}
+              />
+            ))}
+          </Carousel>
         </main>
       </div>
 

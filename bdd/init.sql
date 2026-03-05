@@ -1020,6 +1020,7 @@ SELECT
     t.track_lyricist,
     t.track_publisher,
     t.license_id,
+    t.preview,
     alb.album_id,
     alb.album_title,
     alb.album_handle,

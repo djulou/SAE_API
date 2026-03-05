@@ -39,6 +39,11 @@
   --container-padding: 24px;
 }
 
+html, body {
+  height: 100%;
+  margin: 0;
+}
+
 a {
   font-weight: 500;
   color: #646cff;
@@ -120,7 +125,7 @@ button:focus-visible {
   height: var(--header-height);
   position: sticky;
   top: 0;
-  z-index: 10;
+  z-index: 1001;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -352,37 +357,39 @@ button:focus-visible {
 }
 
 .coeur {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  background: none;
+  background: transparent;
   border: none;
-  font-size: 1.5rem;
   cursor: pointer;
-  opacity: 1;
-  z-index: 2;
+  padding: 5px;
+  transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
-/* cœur blanc */
-.coeur.inactive {
-  filter: drop-shadow(0 0 2px rgba(0, 0, 0, 0.6));
-}
-
-/* cœur rouge */
-.coeur.active {
+/* Effet quand le coeur est liké */
+.coeur.active svg {
+  filter: drop-shadow(0 0 5px rgba(239, 68, 68, 0.4));
   transform: scale(1.1);
 }
 
-/* non connecté */
+.coeur:hover {
+  transform: scale(1.2);
+}
+
 .coeur.disabled {
+  opacity: 0.3;
   cursor: not-allowed;
-  opacity: 0.4;
+  filter: grayscale(1);
+}
+
+/* On s'assure que le coeur ne s'envole pas en haut à droite dans les listes */
+.track-row .coeur, .player-sticky-bar .coeur {
+  position: static !important;
 }
 
 /* footer================================================================== */
 
 
 .footer {
+  width: 100%;
   padding: 1.5rem;
   background-color: #111;
   color: #ccc;
@@ -441,7 +448,7 @@ button:focus-visible {
   display: flex;
   flex-direction: column;
   gap: 2rem;
-  z-index: 9;
+  z-index: 90;
   position: fixed;
   top: 20vh;
   width: 260px;
@@ -1044,14 +1051,16 @@ button:focus-visible {
 
 /* zone d'ecoute */
 
-.lecture-page{
-    background-color: var(--color-border);
+.lecture-page {
+    background-color: var(--color-bg-light); /* Utilise ta variable plutôt que border */
     display: flex;
+    flex-direction: row; /* Aligne l'image et le lecteur sur une ligne */
     align-items: center;
-    
-    justify-content: space-around;
-    padding: 1em;
-    border-radius: 50px;
+    justify-content: space-between;
+    padding: 1.5rem;
+    border-radius: var(--radius-lg);
+    gap: 2rem;
+    margin: 1rem 0;
 }
 
 .lecture-page .info-image {
@@ -1097,5 +1106,221 @@ button:focus-visible {
   background-size: 800px 100%;
   animation: skeleton-shimmer 1.5s infinite linear;
 }
+/* ======================================================
+   DOCK PLAYER ÉPURÉ (SANS SUPERPOSITIONS)
+   ====================================================== */
 
-/**/
+.player-sticky-bar {
+  position: fixed !important;
+  bottom: 30px !important;
+  left: 50% !important;
+  transform: translateX(-50%);
+  width: 95%;
+  max-width: 1000px;
+  height: 85px !important;
+  background: rgba(18, 18, 18, 0.9) !important;
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  padding: 0 25px;
+}
+
+/* On réorganise Lecture en 3 colonnes distinctes */
+.player-sticky-bar .lecture-page {
+  display: grid !important;
+  grid-template-columns: 250px 1fr 150px; /* Gauche | Centre | Droite */
+  align-items: center;
+  width: 100%;
+  gap: 20px;
+  background: transparent !important;
+  padding: 0 !important;
+}
+
+/* COLONNE GAUCHE : Image + Texte */
+.player-sticky-bar .info-image {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  overflow: hidden;
+}
+
+.player-sticky-bar .pochette-wrapper {
+  width: 50px !important;
+  height: 50px !important;
+  flex-shrink: 0;
+  border-radius: 8px;
+  margin: 0 !important;
+  position: relative;
+}
+
+.player-sticky-bar .description h3 {
+  font-size: 0.9rem;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.player-sticky-bar .description p {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  margin: 0;
+}
+
+/* COLONNE CENTRE : Le lecteur */
+.player-sticky-bar .ecoute-musique {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+.player-sticky-bar .audio-player-container {
+  width: 100%;
+  max-width: 500px;
+  background: transparent;
+}
+
+.player-sticky-bar .fma-embed-player {
+  height: 60px;
+  filter: invert(0.9) hue-rotate(180deg) brightness(1.2);
+}
+
+/* COLONNE DROITE : Favoris + Plus + Fermer */
+.player-sticky-bar .player-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 15px;
+}
+
+/* On nettoie les boutons pour éviter les superpositions */
+.player-sticky-bar .actions-overlay {
+    position: static !important; /* On retire le positionnement sur l'image */
+    display: flex;
+}
+
+.player-sticky-bar .btn-plus, 
+.player-sticky-bar .coeur {
+  position: static !important;
+  background: transparent !important;
+  padding: 5px !important;
+  transform: none !important;
+  font-size: 1.2rem;
+}
+
+.player-sticky-bar .btn-close-player {
+  margin-left: 10px;
+  color: var(--color-text-muted);
+  font-size: 1.5rem;
+  line-height: 1;
+}
+
+/* Barre de progression moderne */
+.progress-container {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+}
+
+.custom-progress-bar {
+  position: relative;
+  flex: 1;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+}
+
+.progress-fill {
+  position: absolute;
+  height: 100%;
+  background: var(--color-primary);
+  border-radius: 10px;
+  z-index: 1;
+}
+
+.progress-slider {
+  position: absolute;
+  width: 100%;
+  z-index: 2;
+  appearance: none;
+  background: transparent;
+  cursor: pointer;
+  margin: 0;
+}
+
+.progress-slider::-webkit-slider-thumb {
+  appearance: none;
+  width: 12px;
+  height: 12px;
+  background: white;
+  border-radius: 50%;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.custom-progress-bar:hover .progress-slider::-webkit-slider-thumb {
+  opacity: 1;
+}
+
+.time-label {
+  font-size: 0.7rem;
+  color: var(--color-text-muted);
+  min-width: 35px;
+}
+
+.btn-main-play {
+    background: transparent;
+    color: white;
+    border: none;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.btn-main-play:hover { transform: scale(1.1); }
+
+/* Neutralise le positionnement absolu du coeur dans le player */
+.player-sticky-bar .coeur {
+  position: static !important; /* Annule le absolute, top et right */
+  margin: 0;
+  padding: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* On s'assure que le titre du track est bien blanc et propre */
+.player-sticky-bar .text-info h3 {
+  color: #ffffff !important;
+  margin: 0;
+  font-size: 1rem;
+}
+
+/* On s'assure que le bouton plus reste blanc même au repos */
+.player-sticky-bar .btn-plus svg {
+  stroke: #ffffff !important;
+}
+
+/* On neutralise le positionnement absolu quand le coeur est dans une ligne */
+.track-row .coeur {
+  position: static !important; /* Annule le top: 8px et right: 8px */
+  margin: 0;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+}
+
+/* On s'assure que la colonne des actions centre bien ses éléments */
+.col-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+}

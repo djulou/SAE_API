@@ -32,6 +32,12 @@ function App() {
   const [userId, setUserId] = useState<number | null>(null)
   const [isLoading, setIsLoading] = useState<boolean>(true)
 
+    const [searchQuery, setSearchQuery] = useState("");
+
+  const handleSearch = (query: string) => {
+    setSearchQuery(query);
+  };
+
   const handleLogout = () => {
     logout() 
     setIsConnected(false)
@@ -108,6 +114,7 @@ function App() {
             userId={userId}
             onOpenPlaylist={handleOpenPlaylist}
             onOpenAlbum={handleOpenAlbum}
+            searchQuery={searchQuery}
           />
         )
 
@@ -161,6 +168,7 @@ function App() {
             userId={userId}
             onOpenPlaylist={handleOpenPlaylist}
             onOpenAlbum={handleOpenAlbum}
+            searchQuery={searchQuery}
           />
         )
 
@@ -173,6 +181,8 @@ function App() {
         onNavigate={setPage}
         isConnected={isConnected}
         onLogout={handleLogout}
+        currentPage={page}
+        onSearch={handleSearch}
       />
 
       <main>

@@ -37,6 +37,8 @@ import pandas as pd
 
 load_dotenv()
 
+
+
 # Configuration JWT
 SECRET_KEY = os.getenv("SECRET_KEY")
 if SECRET_KEY is None:
@@ -45,6 +47,7 @@ if SECRET_KEY is None:
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
+optional_oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login", auto_error=False)
 
 
 ###########################################
@@ -52,6 +55,24 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
 ###########################################
 
 app = FastAPI()
+
+
+###########################################
+##      AUTORISATIONS & LANCEMENT        ##
+###########################################
+
+origins = [
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # Configuration BDD
 db_host = os.getenv("DB_HOST", "localhost")
@@ -168,6 +189,38 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depend
     }
     
 ######## GET ##
+
+@app.get("/search/tracks", response_model=List[schema.TrackView])
+def search_tracks(
+    query: str, 
+    db: Session = Depends(get_db), 
+    token: Optional[str] = Depends(optional_oauth2_scheme)
+):
+    results = db.query(ViewTrackMaterialise).filter(
+        or_(
+            ViewTrackMaterialise.track_title.ilike(f"%{query}%"),
+            ViewTrackMaterialise.artist_name.ilike(f"%{query}%")
+        )
+    ).limit(50).all()
+
+    if token:
+        try:
+            # On décode le token pour identifier l'utilisateur
+            payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+            user_id = payload.get("sub")
+            
+            if user_id:
+                # On crée l'entrée dans l'historique
+                new_history = SearchHistory(
+                    user_id=int(user_id),
+                    history_query=query
+                )
+                db.add(new_history)
+                db.commit()
+        except Exception as e:
+            print(f"Token invalide pour l'historique : {e}")
+
+    return results
 
 @app.get("/artist") 
 def get_all_artists(limit: Optional[int] = None, db: Session = Depends(get_db)):
@@ -1039,6 +1092,30 @@ def remove_track_from_playlist(playlist_id: int, track_id: int, db: Session = De
     db.delete(link)
     db.commit()
     return {"message": "Piste retirée de la playlist"}
+
+
+stats = {
+    "total_requests": 0,
+    "avg_response_time": 0.0
+}
+
+@app.middleware("http")
+async def stats_middleware(request: Request, call_next):
+    start = time.time()
+    response = await call_next(request)
+    duration = time.time() - start
+
+    stats["total_requests"] += 1
+    stats["avg_response_time"] = (
+        (stats["avg_response_time"] * (stats["total_requests"] - 1) + duration)
+        / stats["total_requests"]
+    )
+
+    return response
+
+@app.get("/stats")
+def get_stats():
+    return stats
 
 ###########################################
 ##      AUTORISATIONS & LANCEMENT        ##
