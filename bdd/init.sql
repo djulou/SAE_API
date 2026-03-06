@@ -670,6 +670,8 @@ $$ LANGUAGE plpgsql;
 CREATE OR REPLACE FUNCTION sae.majStats(p_user_id INT)
 RETURNS void AS $$
 BEGIN
+    SET LOCAL app.internal_update = 'true';
+
     WITH UserAudioProfile AS (
         SELECT 
             utl.user_id,
@@ -875,7 +877,18 @@ CREATE OR REPLACE TRIGGER trg_init_stats
 
 CREATE OR REPLACE FUNCTION sae.block_manual_changes()
 RETURNS TRIGGER AS $$
+DECLARE
+    is_internal TEXT;
 BEGIN
+    -- On récupère la valeur de notre variable (on utilise coalesce pour éviter les erreurs si elle n'existe pas)
+    is_internal := current_setting('app.internal_update', true);
+
+    -- Si la variable est à 'true', on laisse passer la modification
+    IF is_internal = 'true' THEN
+        RETURN NEW;
+    END IF;
+
+    -- Sinon, c'est une modification manuelle (ex: via l'API ou un client SQL), on bloque
     RAISE EXCEPTION 'Interdiction de modifier manuellement sae.Stats_user. Utilisez les triggers de la table User.';
 END;
 $$ LANGUAGE plpgsql;
