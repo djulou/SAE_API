@@ -10,7 +10,9 @@ type TrackData = {
   track_duration: number;
   artist_name?: string;
   track_composer?: string;
-  preview?: string; // Nécessaire pour l'URL audio du lecteur
+  preview?: string; 
+  playlistId?: number; 
+  albumId?: number;
 };
 
 type PlaylistData = {
@@ -26,7 +28,7 @@ type PlaylistDetailProps = {
   isConnected: boolean;
 };
 
-// --- COMPOSANT LIGNE DE MUSIQUE (Inspiré de AlbumTrackRow) ---
+// --- COMPOSANT LIGNE DE MUSIQUE ---
 function PlaylistTrackRow({
   track,
   index,
@@ -60,21 +62,28 @@ function PlaylistTrackRow({
       <div className="col-index">
         {isActive ? (
           <div className="playing-animation">
-            <span className="bar"></span>
-            <span className="bar"></span>
-            <span className="bar"></span>
+            <span className="bar" style={{ backgroundColor: "#ff9800" }}></span>
+            <span className="bar" style={{ backgroundColor: "#ff9800" }}></span>
+            <span className="bar" style={{ backgroundColor: "#ff9800" }}></span>
           </div>
-        ) : isHovered ? (
-          <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16" style={{ color: "var(--color-primary)" }}>
+        ) : (
+          // Bouton Play toujours visible en orange
+          <svg 
+            viewBox="0 0 24 24" 
+            fill="#ff9800" 
+            width="18" 
+            height="18"
+          >
             <path d="M8 5v14l11-7z" />
           </svg>
-        ) : (
-          index + 1
         )}
       </div>
 
       <div className="col-title">
-        <span className="track-name" style={{ color: isHovered || isActive ? "var(--color-primary)" : "var(--color-text)" }}>
+        <span 
+          className="track-name" 
+          style={{ color: isActive ? "#ff9800" : "var(--color-text)" }}
+        >
           {track.track_title}
         </span>
         <span className="track-artist">
@@ -118,11 +127,9 @@ export default function PlaylistDetail({
         const headers: Record<string, string> = {};
         if (token) headers["Authorization"] = `Bearer ${token}`;
 
-        // Fetch des infos de la playlist
         const resP = await fetch(`http://127.0.0.1:8000/playlist/${playlistId}`, { headers });
         if (resP.ok) setPlaylist(await resP.json());
 
-        // Fetch des musiques de la playlist
         const resT = await fetch(`http://127.0.0.1:8000/playlist/${playlistId}/tracks`, { headers });
         if (resT.ok) setTracks(await resT.json());
       } catch (err) {
@@ -151,15 +158,21 @@ export default function PlaylistDetail({
             <span className="bullet">•</span>
             <span>{tracks.length} titres</span>
             <span className="bullet">•</span>
-            <span>{playlist?.playlist_listens} écoutes</span>
+            <span>{playlist?.playlist_listens || 0} écoutes</span>
           </div>
         </div>
       </header>
 
       <div className="playlist-action-bar">
-        <button 
-          className="btn-play-large" 
-          onClick={() => tracks.length > 0 && setActiveTrack(tracks[0])}
+        {/* Gros bouton Play passé en Orange */}
+        <button
+          className="btn-play-large"
+          style={{ backgroundColor: "#ff9800", border: "none" }}
+          onClick={() => {
+            if (tracks.length > 0) {
+              setActiveTrack({ ...tracks[0], playlistId: playlist?.playlist_id });
+            }
+          }}
         >
           <svg viewBox="0 0 24 24" fill="black" width="28" height="28" style={{ marginLeft: "4px" }}>
             <path d="M8 5v14l11-7z" />
@@ -188,7 +201,7 @@ export default function PlaylistDetail({
               index={idx}
               isConnected={isConnected}
               isActive={activeTrack?.track_id === track.track_id}
-              onPlay={() => setActiveTrack(track)}
+              onPlay={() => setActiveTrack({ ...track, playlistId: playlist?.playlist_id })}
             />
           ))}
         </div>
@@ -199,13 +212,17 @@ export default function PlaylistDetail({
           <Lecture
             key={activeTrack.track_id}
             trackId={activeTrack.track_id}
+            playlistId={activeTrack.playlistId} 
             title={activeTrack.track_title}
             artist={activeTrack.artist_name || "Artiste inconnu"}
             audioUrl={activeTrack.preview || ""}
             isConnected={isConnected}
             onAdd={() => console.log("Ajout playlist")}
           />
-          <button className="btn-close-player" onClick={() => setActiveTrack(null)}>
+          <button
+            className="btn-close-player"
+            onClick={() => setActiveTrack(null)}
+          >
             &times;
           </button>
         </div>

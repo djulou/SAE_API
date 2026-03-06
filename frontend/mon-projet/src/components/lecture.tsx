@@ -4,6 +4,8 @@ import GeneratedCover from "./GeneratedCover";
 
 type LectureProps = {
   trackId: number;
+  albumId?: number; // Optionnel : ID de l'album en cours
+  playlistId?: number; // Optionnel : ID de la playlist en cours
   title: string;
   artist: string;
   audioUrl: string;
@@ -13,6 +15,8 @@ type LectureProps = {
 
 function Lecture({
   trackId,
+  albumId,
+  playlistId,
   title,
   artist,
   audioUrl,
@@ -24,26 +28,92 @@ function Lecture({
   const [duration, setDuration] = useState(0);
   const [isFavorite, setIsFavorite] = useState(false);
 
-  // --- Nouveaux états pour le Volume ---
-  const [volume, setVolume] = useState(0.7); // Volume par défaut à 70%
+  // États pour le Volume
+  const [volume, setVolume] = useState(0.7);
   const [showVolumeBar, setShowVolumeBar] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
 
   const audioRef = useRef<HTMLAudioElement>(null);
 
+  // --- GESTION AUDIO (Lecture / Pause) ---
   useEffect(() => {
     if (audioRef.current) {
       isPlaying ? audioRef.current.play() : audioRef.current.pause();
     }
   }, [isPlaying, audioUrl]);
 
-  // Appliquer le volume à l'élément audio
+  // --- GESTION DU VOLUME ---
   useEffect(() => {
     if (audioRef.current) {
       audioRef.current.volume = isMuted ? 0 : volume;
     }
   }, [volume, isMuted]);
 
+  // --- ENREGISTREMENT DES ÉCOUTES (Track, Album, Playlist) ---
+  useEffect(() => {
+    console.log("LECTURE RENDER - trackId:", trackId, "playlistId:", playlistId);
+    if (!isConnected || !trackId) return;
+
+    const recordListen = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const headers = {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        };
+
+        // --- ÉTAPE 1 : RÉCUPÉRATION DU CONTEXTE SI MANQUANT ---
+        let currentAlbumId = albumId;
+
+        // Si on n'a pas reçu d'albumId via les props, on va le chercher
+        if (!currentAlbumId) {
+          const res = await fetch(
+            `http://127.0.0.1:8000/track/${trackId}/context`,
+            { headers },
+          );
+          if (res.ok) {
+            const contextData = await res.json();
+            currentAlbumId = contextData.album_id;
+          }
+        }
+
+        // --- ÉTAPE 2 : ENVOI DES ÉCOUTES ---
+
+        // 1. Morceau
+        fetch(`http://127.0.0.1:8000/track/${trackId}/listen`, {
+          method: "POST",
+          headers,
+        });
+
+        // 2. Album (contextuel)
+        if (currentAlbumId) {
+          fetch(`http://127.0.0.1:8000/album/${currentAlbumId}/listen`, {
+            method: "POST",
+            headers,
+          });
+        }
+
+        // 3. Playlist (uniquement si le lecteur a été lancé depuis une playlist)
+        if (playlistId) {
+          fetch(`http://127.0.0.1:8000/playlist/${playlistId}/listen`, {
+            method: "POST",
+            headers,
+          });
+        }
+
+        console.log(
+          "Statistiques envoyées pour Track, Album et Playlist (si applicable).",
+        );
+      } catch (err) {
+        console.error("Erreur stats contextuelles:", err);
+      }
+    };
+
+    const timer = setTimeout(recordListen, 5000);
+    return () => clearTimeout(timer);
+  }, [trackId, isConnected, albumId, playlistId]);
+
+  // --- HANDLERS ---
   const togglePlay = () => setIsPlaying(!isPlaying);
 
   const handleTimeUpdate = () => {
@@ -62,14 +132,6 @@ function Lecture({
     }
   };
 
-  const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const val = parseFloat(e.target.value);
-    setVolume(val);
-    if (val > 0) setIsMuted(false);
-  };
-
-  const toggleMute = () => setIsMuted(!isMuted);
-
   const formatTime = (time: number) => {
     const mins = Math.floor(time / 60);
     const secs = Math.floor(time % 60);
@@ -85,9 +147,11 @@ function Lecture({
         src={audioUrl}
         onTimeUpdate={handleTimeUpdate}
         onLoadedMetadata={handleLoadedMetadata}
+        onEnded={() => setIsPlaying(false)}
         autoPlay
       />
 
+      {/* Partie Gauche : Infos */}
       <section className="info-image">
         <div className="pochette-wrapper">
           <GeneratedCover title={title} />
@@ -102,19 +166,10 @@ function Lecture({
         </article>
       </section>
 
+      {/* Partie Centrale : Contrôles & Barre de progression */}
       <div className="ecoute-musique">
-        <div
-          className="player-controls"
-          style={{
-            display: "flex",
-            justifyContent: "center",
-          }}
-        >
-          <button
-            onClick={togglePlay}
-            className="btn-main-play"
-            style={{ background: "none", border: "none", cursor: "pointer" }}
-          >
+        <div className="player-controls">
+          <button onClick={togglePlay} className="btn-main-play">
             <svg viewBox="0 0 24 24" fill="#ffffff" width="32" height="32">
               {isPlaying ? (
                 <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" />
@@ -145,16 +200,13 @@ function Lecture({
         </div>
       </div>
 
-      <div
-        className="player-actions"
-        style={{ display: "flex", alignItems: "center", gap: "15px" }}
-      >
+      {/* Partie Droite : Volume & Actions */}
+      <div className="player-actions">
         <div
           className="volume-control-container"
           onMouseEnter={() => setShowVolumeBar(true)}
           onMouseLeave={() => setShowVolumeBar(false)}
         >
-          {/* La barre de volume qui flotte au-dessus */}
           {showVolumeBar && (
             <div className="volume-popover">
               <input
@@ -163,14 +215,19 @@ function Lecture({
                 max="1"
                 step="0.01"
                 value={isMuted ? 0 : volume}
-                onChange={handleVolumeChange}
+                onChange={(e) => {
+                  setVolume(parseFloat(e.target.value));
+                  setIsMuted(false);
+                }}
                 className="volume-slider-vertical"
               />
             </div>
           )}
 
-          {/* L'icône cliquable */}
-          <button onClick={toggleMute} className="btn-volume-icon">
+          <button
+            onClick={() => setIsMuted(!isMuted)}
+            className="btn-volume-icon"
+          >
             <svg viewBox="0 0 24 24" width="22" height="22" fill="#ffffff">
               {isMuted || volume === 0 ? (
                 <path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z" />
@@ -191,18 +248,7 @@ function Lecture({
         />
 
         {isConnected && onAdd && (
-          <button
-            className="btn-plus"
-            onClick={onAdd}
-            style={{
-              background: "transparent",
-              border: "none",
-              padding: "5px",
-              display: "flex",
-              alignItems: "center",
-              cursor: "pointer",
-            }}
-          >
+          <button className="btn-plus" onClick={onAdd}>
             <svg
               viewBox="0 0 24 24"
               width="24"

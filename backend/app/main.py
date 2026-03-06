@@ -1150,6 +1150,88 @@ async def stats_middleware(request: Request, call_next):
 @app.get("/stats")
 def get_stats():
     return stats
+from sqlalchemy.dialects.postgresql import insert
+
+@app.post("/track/{track_id}/listen")
+def add_listen(track_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    # Préparation de l'insertion avec mise à jour en cas de conflit (Upsert)
+    stmt = insert(UserTrackListening).values(
+        user_id=current_user.user_id,
+        track_id=track_id,
+        nb_listening=1
+    )
+    
+    # Si le couple (user_id, track_id) existe déjà, on ajoute 1 à nb_listening
+    stmt = stmt.on_conflict_do_update(
+        index_elements=['user_id', 'track_id'],
+        set_=dict(nb_listening=UserTrackListening.nb_listening + 1)
+    )
+    
+    db.execute(stmt)
+    db.commit()
+
+    # On rafraîchit la vue matérialisée pour que le +1 soit visible sur le front
+    # CONCURRENTLY permet de ne pas bloquer les lectures pendant le rafraîchissement
+    db.execute(text("REFRESH MATERIALIZED VIEW CONCURRENTLY sae.view_track_materialise"))
+    db.commit()
+
+    return {"status": "success"}
+
+# Route pour l'Album
+@app.post("/album/{album_id}/listen")
+def add_album_listen(album_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    stmt = insert(UserAlbumListening).values(
+        user_id=current_user.user_id,
+        album_id=album_id,
+        nb_listening=1
+    )
+    
+    stmt = stmt.on_conflict_do_update(
+        index_elements=['user_id', 'album_id'],
+        set_=dict(nb_listening=UserAlbumListening.nb_listening + 1)
+    )
+    
+    db.execute(stmt)
+    db.commit()
+    
+    db.execute(text("REFRESH MATERIALIZED VIEW CONCURRENTLY sae.view_track_materialise"))
+    db.commit()
+    
+    return {"status": "success"}
+
+@app.post("/playlist/{playlist_id}/listen")
+def add_playlist_listen(playlist_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    stmt = insert(UserPlaylistListening).values(
+        user_id=current_user.user_id,
+        playlist_id=playlist_id,
+        nb_listening=1
+    )
+    
+    stmt = stmt.on_conflict_do_update(
+        index_elements=['user_id', 'playlist_id'],
+        set_=dict(nb_listening=UserPlaylistListening.nb_listening + 1)
+    )
+    
+    db.execute(stmt)
+    db.commit()
+    
+    db.execute(text("REFRESH MATERIALIZED VIEW CONCURRENTLY sae.view_track_materialise"))
+    db.commit()
+    
+    return {"status": "success"}
+
+@app.get("/track/{track_id}/context")
+def get_track_context(track_id: int, db: Session = Depends(get_db)):
+    # On cherche l'album lié à ce morceau dans la table de liaison
+    # Exemple basé sur ton schéma sae.Artist_Album_Track
+    result = db.execute(text("""
+        SELECT album_id FROM sae.Artist_Album_Track 
+        WHERE track_id = :tid LIMIT 1
+    """), {"tid": track_id}).fetchone()
+    
+    if result:
+        return {"album_id": result.album_id}
+    return {"album_id": None}
 
 ###########################################
 ##      AUTORISATIONS & LANCEMENT        ##
