@@ -299,6 +299,7 @@ export default function Accueil({
                         artist={track.artist_name}
                         pochette={track.album_image_file}
                         isConnected={isConnected}
+                        onAdd={() => handleAddTrack(track.track_id)}
                       />
                     ))
                   ) : (
