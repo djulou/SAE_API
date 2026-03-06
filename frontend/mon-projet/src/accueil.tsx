@@ -1,13 +1,14 @@
-import { useState, useEffect } from "react";
-import Carousel from "./components/Carousel";
-import CarteChanson from "./components/carte_chanson";
-import CarteArtist from "./components/carte_artist";
-import CarteAlbum from "./components/carte_album";
-import AddToPlaylistModal from "./components/AddToPlaylistModal";
+import { useState, useEffect } from "react"
+import Carousel from "./components/Carousel"
+import CarteChanson from "./components/carte_chanson"
+import CarteArtist from "./components/carte_artist"
+import CarteAlbum from "./components/carte_album"
+import AddToPlaylistModal from "./components/AddToPlaylistModal"
+import NavBarSide from "./components/NavBarSide"
 
-import { getChansons } from "./services/chansonService";
-import type { Playlist } from "./types/Playlist";
-import type { Album } from "./types/Album";
+import type { Album } from "./types/Album"
+import type { Page } from "./types/Page"
+
 
 //
 type AccueilProps = {
@@ -16,7 +17,8 @@ type AccueilProps = {
   onOpenPlaylist: (id: number) => void;
   onOpenAlbum: (id: number) => void;
   onOpenArtist: (id: number) => void;
-  searchQuery: string;
+  searchQuery: string
+  onNavigate: (page: Page) => void;
 };
 
 interface Track {
@@ -47,6 +49,7 @@ export default function Accueil({
   onOpenAlbum,
   onOpenArtist,
   searchQuery,
+  onNavigate,
 }: AccueilProps) {
   const [tracks, setTracks] = useState<Track[]>([]);
   const [recoGRU, setRecoGRU] = useState<Track[]>([]);
@@ -268,41 +271,18 @@ export default function Accueil({
   return (
     <>
       <div className="accueil-layout">
-        {isConnected && (
-          <nav className="menu-favoris">
-            <div>
-              <ul className="list-aime">
-                <li>Écouté récemment</li>
-              </ul>
+         {isConnected && (
+        <NavBarSide 
+            onNavigate={onNavigate}
+            isConnected={isConnected}
+            setModalOpen={setModalOpen}
+            onOpenPlaylist={onOpenPlaylist}
+            setSelectedTrackId={setSelectedTrackId}
+            userPlaylists={userPlaylists}
+        />
+         )}
+        <div className="accueil-content">
 
-              <button
-                className="btn-add-playlist"
-                onClick={() => {
-                  setSelectedTrackId(null);
-                  setModalOpen(true);
-                }}
-              >
-                Ajouter une Playlist
-              </button>
-
-              {isConnected && (
-                <ul className="list-playlist">
-                  {userPlaylists.map((pl) => (
-                    <li
-                      key={pl.playlist_id}
-                      className="playlist-menu-item"
-                      style={{ cursor: "pointer" }}
-                      onClick={() => onOpenPlaylist(pl.playlist_id)}
-                    >
-                      {pl.playlist_name}
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
-          </nav>
-        )}
-        <main className="accueil-content">
           {searchQuery && (
             <>
               <h2>Résultats pour "{searchQuery}"</h2>
@@ -444,19 +424,26 @@ export default function Accueil({
           )}
 
           <h2>Albums recommandés</h2>
-          <Carousel>
-            {topAlbum.map((album) => (
-              <CarteAlbum
-                key={album.album_id}
-                title={album.album_title}
-                artist={album.artist_name || "Artiste inconnu"}
-                pochette={album.album_image_file}
-                isConnected={isConnected}
-                onClick={() => onOpenAlbum(album.album_id)}
-              />
-            ))}
-          </Carousel>
-        </main>
+
+          {loadingTopAlbum ? (
+            <div>
+              <p>Chargement des albums...</p>
+            </div>
+          ) : (
+            <Carousel>
+              {topAlbum.map((album) => (
+                <CarteAlbum
+                  key={album.album_id}
+                  title={album.album_title}
+                  artist={album.artist_name || "Artiste inconnu"}
+                  pochette={album.album_image_file}
+                  isConnected={isConnected}
+                  onClick={() => onOpenAlbum(album.album_id)}
+                />
+              ))}
+            </Carousel>
+          )}
+        </div>
       </div>
 
       {/* Le Modal est rendu ici */}

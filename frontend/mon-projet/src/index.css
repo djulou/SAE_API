@@ -450,7 +450,7 @@ button:focus-visible {
   gap: 2rem;
   z-index: 90;
   position: fixed;
-  top: 20vh;
+  top: 15%;
   width: 260px;
   min-width: 220px;
 }
@@ -1423,4 +1423,26 @@ button:focus-visible {
 .btn-outline:hover {
   border-color: white;
   transform: scale(1.05);
+}
+
+/* Pages Favorites */
+
+.tracks-grid {
+  display: grid;
+  /* Crée autant de colonnes de 200px que possible */
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 20px;
+  padding: 20px 0;
+}
+
+.favorites-page {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+}
+
+.favorites-page h1 {
+    margin-bottom: 30px;
+    border-bottom: 1px solid #333;
+    padding-bottom: 10px;
 }

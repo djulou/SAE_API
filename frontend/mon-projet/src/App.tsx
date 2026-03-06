@@ -18,6 +18,9 @@ import PlaylistDetail from "./components/PlaylistDetail"
 import AlbumDetail from "./components/AlbumDetail"
 import ArtistDetail from "./components/ArtistDetail" // Ajout de l'import
 
+import AlbumsFavorites from "./components/AlbumsFavorites"
+import TracksFavorites from "./components/TracksFavorites"
+import ArtistsFavorites from "./components/ArtistsFavorites"
 
 import { getCurrentUser, logout } from "./services/authService"
 import type { Page } from "./types/Page"
@@ -34,7 +37,7 @@ function App() {
   const [userId, setUserId] = useState<number | null>(null)
   const [isLoading, setIsLoading] = useState<boolean>(true)
 
-    const [searchQuery, setSearchQuery] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
 
   const handleSearch = (query: string) => {
     setSearchQuery(query);
@@ -125,6 +128,7 @@ function App() {
             onOpenAlbum={handleOpenAlbum}
             onOpenArtist={handleOpenArtist} // Ajout de la prop
             searchQuery={searchQuery}
+            onNavigate={setPage}
           />
         )
 
@@ -145,6 +149,32 @@ function App() {
           />
         )
 
+      case "albums_favorites":
+        return (
+          <AlbumsFavorites
+            isConnected={isConnected}
+            onNavigate={setPage}
+            onOpenPlaylist={handleOpenPlaylist}
+            userId={userId}
+          />
+      )
+
+      case "tracks_favorites":
+        return (
+          <TracksFavorites
+            isConnected={isConnected}
+            onNavigate={setPage}
+            onOpenPlaylist={handleOpenPlaylist}
+            userId={userId}
+          />
+      )
+
+      case "artists_favorites":
+        return (
+          <ArtistsFavorites
+            isConnected={isConnected}
+          />
+      )
       case "artist_detail":
         return (
           <ArtistDetail
@@ -188,6 +218,7 @@ function App() {
             onOpenAlbum={handleOpenAlbum}
             onOpenArtist={handleOpenArtist}
             searchQuery={searchQuery}
+            onNavigate={setPage}
           />
         )
 

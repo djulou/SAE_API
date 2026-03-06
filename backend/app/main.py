@@ -1,8 +1,9 @@
-from fastapi import FastAPI, Request, Depends, HTTPException, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, Depends, HTTPException, WebSocket, WebSocketDisconnect, Request
 from typing import List, Optional
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy import create_engine, or_, func, text
+import time
 
 import time
 import bcrypt
@@ -415,19 +416,24 @@ def get_tracks(limit: Optional[int] = None, db: Session = Depends(get_db)):
 @app.get("/topTrack", response_model=List[schema.TrackView])
 def get_top_tracks(limit: Optional[int] = 20, db: Session = Depends(get_db)):
 
-    query = db.query(ViewTrackMaterialise).order_by(
-        ViewTrackMaterialise.track_listens.desc()
-    )
+    try:
+        query = db.query(ViewTrackMaterialise).order_by(
+            ViewTrackMaterialise.track_listens.desc()
+        )
+        
+        if limit is not None:
+            query = query.limit(limit)
+
+        results = query.all()
+
+        if not results:
+            return []
+
+        return results
     
-    if limit is not None:
-        query = query.limit(limit)
-
-    results = query.all()
-
-    if not results:
-        return []
-
-    return results
+    except Exception as e:
+        print(f"ERREUR SQL : {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/playlist", response_model=List[schema.Playlist]) 
 def get_all_playlists(limit: Optional[int] = None, db: Session = Depends(get_db)):
@@ -521,6 +527,54 @@ def get_user_by_id(user_id: int, db: Session = Depends(get_db), current_user: Us
     if user.user_id != current_user.user_id:
         raise HTTPException(status_code=403, detail="Vous ne pouvez accéder qu'à votre propre compte")
     return user
+
+@app.get("/user/favorites/tracks", response_model=List[schema.TrackView])
+def get_user_favorite_tracks(
+    db: Session = Depends(get_db), 
+    current_user: User = Depends(get_current_user)
+):
+    fav_ids = db.query(TrackUserFavorite.track_id).filter(
+        TrackUserFavorite.user_id == current_user.user_id
+    ).all()
+    
+    list_ids = [fid[0] for fid in fav_ids]
+
+    if not list_ids:
+        return []
+
+    tracks = db.query(ViewTrackMaterialise).filter(
+        ViewTrackMaterialise.track_id.in_(list_ids)
+    ).all()
+
+    return tracks
+
+@app.get("/user/favorites/albums", response_model=List[schema.AlbumDetailed])
+def get_user_favorite_albums(
+    db: Session = Depends(get_db), 
+    current_user: User = Depends(get_current_user)
+):
+    albums = db.query(
+        Album.album_id,
+        Album.album_title,
+        Album.album_listens,
+        Album.album_image_file,
+        
+        func.min(Artist.artist_name).label("artist_name"),
+        
+        func.count(ArtistAlbumTrack.track_id).label("track_count")
+    ).join(
+        UserAlbumFavorite, Album.album_id == UserAlbumFavorite.album_id
+    ).join(
+        ArtistAlbumTrack, Album.album_id == ArtistAlbumTrack.album_id
+    ).join(
+        Artist, Artist.artist_id == ArtistAlbumTrack.artist_id
+    ).filter(
+        UserAlbumFavorite.user_id == current_user.user_id
+    ).group_by(
+        Album.album_id
+    ).all()
+
+    return albums
 
 ####### RECOMMANDATIONS IA ##
 
