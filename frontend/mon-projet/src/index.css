@@ -1211,6 +1211,7 @@ button:focus-visible {
 }
 
 .player-sticky-bar .btn-close-player {
+  background-color: rgba(18, 18, 18, 0.9) !important;
   margin-left: 10px;
   color: var(--color-text-muted);
   font-size: 1.5rem;
