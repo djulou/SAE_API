@@ -110,6 +110,8 @@ export default function AlbumsFavorites({ isConnected, onNavigate, onOpenPlaylis
         <div className="tracks-grid">
           {favorites.map((album) => (
             <CarteAlbum
+                  key={album.album_id}
+                  albumId={album.album_id}
                   title={album.album_title}
                   artist={album.artist_name}
                   pochette={album.album_image_file}

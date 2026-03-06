@@ -4,6 +4,7 @@ import Coeur from "./coeur";
 import GeneratedCover from "./GeneratedCover";
 
 type CarteAlbumProps = {
+  albumId: number;
   title: string;
   artist: string;
   pochette?: string;
@@ -13,6 +14,7 @@ type CarteAlbumProps = {
 };
 
 function CarteAlbum({
+  albumId,
   title,
   artist,
   isConnected,
@@ -21,9 +23,36 @@ function CarteAlbum({
 }: CarteAlbumProps) {
   const [isFavorite, setIsFavorite] = useState(false);
 
-  const toggleFavorite = () => {
-    setIsFavorite((prev) => !prev);
-  };
+  const toggleFavorite = async () => {
+    if (!isConnected) return
+
+    const token = localStorage.getItem("token")
+    if (!token) return
+
+    try {
+      if (!isFavorite) {
+        const res = await fetch("http://127.0.0.1:8000/userAlbumFavorite", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`
+          },
+          body: JSON.stringify({ album_id: albumId })
+        })
+        if (res.ok) setIsFavorite(true)
+      } else {
+        const res = await fetch(`http://127.0.0.1:8000/userAlbumFavorite/${albumId}`, {
+          method: "DELETE",
+          headers: {
+            "Authorization": `Bearer ${token}`
+          }
+        })
+        if (res.ok) setIsFavorite(false)
+      }
+    } catch (e) {
+      console.error("Erreur lors du toggle favori:", e)
+    }
+  }
 
   return (
     <div className="carte-album" id="carte-album" onClick={onClick}>

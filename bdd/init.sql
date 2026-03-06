@@ -470,6 +470,7 @@ INSERT INTO sae.Permission (permission_label) VALUES
 -- Permissions de base (USER)
 ('track_listen'),          -- Droit d'écouter et d'incrémenter les stats
 ('track_like'),            -- Ajouter aux favoris
+('album_like'),            -- Ajouter aux favoris
 ('playlist_create'),       -- Créer ses propres listes
 ('playlist_edit_own'),     -- Modifier ses propres listes
 
@@ -488,7 +489,7 @@ INSERT INTO sae.Role_Permission (role_id, permission_id)
 SELECT r.role_id, p.permission_id
 FROM sae.Role r, sae.Permission p
 WHERE r.role_name = 'USER' 
-AND p.permission_label IN ('track_listen', 'track_like', 'playlist_create', 'playlist_edit_own');
+AND p.permission_label IN ('track_listen', 'track_like', 'album_like', 'playlist_create', 'playlist_edit_own');
 
 -- Droits pour le rôle ARTIST (USER + Uploads)
 INSERT INTO sae.Role_Permission (role_id, permission_id)

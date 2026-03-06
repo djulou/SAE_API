@@ -891,10 +891,18 @@ def create_user_artist_favorite(user_artist_favorite_data: UserArtistFavoriteCre
     return new_user_artist_favorite
 
 @app.post("/userAlbumFavorite", status_code=201)
-def create_user_album_favorite(user_album_favorite_data: UserAlbumFavoriteCreate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+def create_user_album_favorite(user_album_favorite_data: UserAlbumFavoriteCreate, db: Session = Depends(get_db), current_user: User = Depends(has_permission("album_like"))):
     
+    # Vérifie si déjà présent
+    existing = db.query(UserAlbumFavorite).filter(
+        UserAlbumFavorite.user_id == current_user.user_id,
+        UserAlbumFavorite.album_id == user_album_favorite_data.album_id
+    ).first()
+    
+    if existing:
+        return existing
+
     user_album_favorite_dict = user_album_favorite_data.model_dump()
-    
     user_album_favorite_dict["user_id"] = current_user.user_id
     
     new_user_album_favorite = UserAlbumFavorite(**user_album_favorite_dict)
@@ -904,6 +912,20 @@ def create_user_album_favorite(user_album_favorite_data: UserAlbumFavoriteCreate
     db.refresh(new_user_album_favorite)
     
     return new_user_album_favorite
+
+@app.delete("/userAlbumFavorite/{album_id}", status_code=200)
+def delete_user_album_favorite(album_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    favorite = db.query(UserAlbumFavorite).filter(
+        UserAlbumFavorite.user_id == current_user.user_id,
+        UserAlbumFavorite.album_id == album_id
+    ).first()
+    
+    if not favorite:
+        raise HTTPException(status_code=404, detail="Favori non trouvé")
+        
+    db.delete(favorite)
+    db.commit()
+    return {"message": "Favori supprimé"}
 
 @app.post("/playlistUser", status_code=201)
 def create_playlist_user(playlist_user_data: PlaylistUserCreate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):

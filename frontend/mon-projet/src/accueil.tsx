@@ -434,6 +434,7 @@ export default function Accueil({
               {topAlbum.map((album) => (
                 <CarteAlbum
                   key={album.album_id}
+                  albumId={album.album_id}
                   title={album.album_title}
                   artist={album.artist_name || "Artiste inconnu"}
                   pochette={album.album_image_file}
