@@ -20,7 +20,7 @@ export default function ConsentPopup({ onNavigate }: CookieProps) {
   function handleYes () {
     localStorage.setItem("consent", "yes")
     setVisible(false)
-    onNavigate("register")
+    onNavigate("login")
   }
 
   function handleNo() {
