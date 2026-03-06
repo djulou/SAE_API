@@ -25,13 +25,6 @@ function Contact({ onNavigate }: ContactProps) {
     setIsLoading(true)
 
     try {
-      // ici tu pourras appeler ton API
-      console.log({
-        email,
-        subject,
-        message
-      })
-
       setSuccess("Message envoyé avec succès !")
 
       setEmail("")

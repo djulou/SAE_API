@@ -410,10 +410,6 @@ export default function Accueil({
                   creator={`${artist.artist_listens} écoutes`}
                   isConnected={isConnected}
                   onClick={() => {
-                    console.log(
-                      "1. Clic détecté dans Accueil pour l'id:",
-                      artist.artist_id,
-                    );
                     onOpenArtist(artist.artist_id);
                   }}
                 />
