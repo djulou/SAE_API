@@ -5,6 +5,8 @@ import "./index.css"
 import Header from "./components/Header"
 import Footer from "./components/Footer"
 
+import ConsentPopup from "./cookie_wall"
+
 import Accueil from "./accueil"
 import DetailCompte from "./detail_compte"
 import PageInstallation from "./installation"
@@ -236,6 +238,7 @@ function App() {
       />
 
       <main>
+        <ConsentPopup onNavigate={setPage} />
         {renderContent()}
       </main>
 
