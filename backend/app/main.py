@@ -1287,6 +1287,36 @@ def get_track_context(track_id: int, db: Session = Depends(get_db)):
         return {"album_id": result.album_id}
     return {"album_id": None}
 
+# 1. Top 5 des musiques les plus écoutées par l'utilisateur
+@app.get("/stats/user/top-tracks")
+def get_top_tracks(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    query = text("""
+        SELECT 
+            utl.track_id, 
+            t.track_title, 
+            utl.nb_listening,
+            g.genre_title as track_genre -- On récupère le genre ici
+        FROM sae.User_Track_Listening utl
+        JOIN sae.Track t ON utl.track_id = t.track_id
+        -- On joint la table Genre via la table de liaison majoritaire
+        LEFT JOIN sae.Track_Genre_Majoritaire tgm ON t.track_id = tgm.track_id
+        LEFT JOIN sae.Genre g ON tgm.genre_id = g.genre_id
+        WHERE utl.user_id = :uid
+          AND t.track_title NOT ILIKE 'Only Instrumental'
+        ORDER BY utl.nb_listening DESC
+        LIMIT 5
+    """)
+    result = db.execute(query, {"uid": current_user.user_id}).mappings().all()
+    return list(result)
+
+
+# 3. Compteurs simples (Favoris et Playlists)
+@app.get("/stats/user/counts")
+def get_user_counts(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    favs = db.execute(text("SELECT COUNT(*) FROM sae.Track_User_Favorite WHERE user_id = :uid"), {"uid": current_user.user_id}).scalar()
+    playlists = db.execute(text("SELECT COUNT(*) FROM sae.Playlist WHERE user_id = :uid"), {"uid": current_user.user_id}).scalar()
+    return {"favoris": favs, "playlists": playlists}
+
 ###########################################
 ##      AUTORISATIONS & LANCEMENT        ##
 ###########################################

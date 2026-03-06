@@ -1,56 +1,61 @@
-/* Stats Layout */
 .stats-section {
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
+    padding: 20px;
+    color: white;
+    max-width: 1200px;
+    margin: 0 auto;
 }
 
+/* Grille du haut (Favoris/Playlists) */
 .stats-grid-top {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1rem;
+    display: flex;
+    gap: 20px;
+    margin-bottom: 40px;
 }
 
 .stat-card-mini {
-    background: #f8fafc;
-    padding: 1rem;
+    flex: 1;
+    background: #181818;
+    padding: 20px;
     border-radius: 12px;
     display: flex;
     align-items: center;
-    gap: 1rem;
+    gap: 20px;
+    border: 1px solid #282828;
 }
 
-.stat-info{
-    color: black;
-}
-
+/* Fix pour l'image qui gêne */
 .stat-icon {
-    width: 40px;
+    width: 40px; 
     height: 40px;
+    flex-shrink: 0; /* Empêche l'image de se déformer ou de pousser le texte */
     object-fit: contain;
 }
 
-.stat-label {
-    font-size: 0.85rem;
-    color: var(--text-light);
-    display: block;
+.stat-info {
+    display: flex;
+    flex-direction: column;
 }
 
-.stat-value {
-    font-size: 1.25rem;
-    font-weight: 700;
-    margin: 0;
+/* Grille du bas (Top Titres / Genres) */
+.stats-grid-bottom {
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* Deux colonnes égales */
+    gap: 30px;
 }
 
-/* Visual Lists (Bars) */
 .stat-card-large {
-    text-align: left;
+    background: #181818;
+    padding: 25px;
+    border-radius: 15px;
+    border: 1px solid #282828;
+    min-height: 300px; /* Assure une taille stable */
 }
 
 .stat-title {
-    font-size: 1rem;
-    margin-bottom: 1rem;
-    color: var(--text-dark);
+    font-size: 1.2rem;
+    margin-bottom: 20px;
+    color: #ff9800;
+    font-weight: bold;
 }
 
 .visual-list {
@@ -60,33 +65,52 @@
 }
 
 .visual-item {
-    margin-bottom: 1rem;
+    margin-bottom: 20px;
+    display: flex;
+    flex-direction: column; /* On met le texte au-dessus de la barre */
 }
 
 .item-text {
     display: flex;
     justify-content: space-between;
-    font-size: 0.9rem;
-    margin-bottom: 4px;
+    margin-bottom: 8px;
+    font-size: 0.95rem;
+    z-index: 2; /* Garde le texte au-dessus */
 }
 
-.item-count {
-    font-weight: 600;
-    color: var(--primary-color);
-}
-
-.progress-bar {
-    height: 8px;
-    background: #e2e8f0;
-    border-radius: 4px;
+.item-name {
+    font-weight: 500;
+    white-space: nowrap;
     overflow: hidden;
+    text-overflow: ellipsis; /* Coupe le texte s'il est trop long */
+    max-width: 70%
+}
+
+/* Barre de progression */
+.progress-bar-bg {
+    background: #282828;
+    height: 10px;
+    border-radius: 5px;
+    width: 100%;
+    position: relative;
 }
 
 .progress-fill {
     height: 100%;
-    border-radius: 4px;
-    transition: width 0.5s ease-in-out;
+    border-radius: 5px;
+    background: linear-gradient(90deg, #ff9800, #ff5722);
+    transition: width 1s ease-in-out;
 }
 
-.track-fill { background: var(--primary-color); }
-.genre-fill { background: #10b981; } /* Vert pour les genres */
+.item-main-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.item-sub-genre {
+    font-size: 0.75rem;
+    color: #ff9800; /* Orange pour rappeler ton thème */
+    text-transform: uppercase;
+    font-weight: bold;
+    margin-top: 2px;
+}

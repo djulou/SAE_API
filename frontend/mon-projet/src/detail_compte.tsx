@@ -84,12 +84,7 @@ export default function DetailCompte() {
                     </header>
                     
                     <div className="stats-wrapper">
-                        <StatsUser 
-                            favoris={0} 
-                            playlists={0}
-                            track_listen={[]} 
-                            genre_listen={[]} 
-                        />
+                        <StatsUser  />
                     </div>
                 </main>
             </div>
