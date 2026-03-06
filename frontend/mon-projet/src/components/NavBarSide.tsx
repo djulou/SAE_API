@@ -24,10 +24,7 @@ return (
     <nav className="menu-favoris">
         <div>
         <ul className="list-aime">
-            <li>Écouté récemment</li>
-            <li onClick={() => onNavigate("tracks_favorites")}>Titres favoris</li>
             <li onClick={() => onNavigate("albums_favorites")}>Albums favoris</li>
-            <li onClick={() => onNavigate("artists_favorites")}>Artistes favoris</li>
         </ul>
 
         <button

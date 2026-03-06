@@ -32,6 +32,7 @@ function CarteArtist({
     >
       <div className="pochette-wrapper">
         <GeneratedCover title={title} />
+        
         <Coeur
           isFavorite={isFavorite}
           isConnected={isConnected}

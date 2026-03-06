@@ -1,38 +1,42 @@
-import { useState } from "react"
-import Coeur from "./coeur"
+import { useState } from "react";
+import Coeur from "./coeur";
 
-import GeneratedCover from "./GeneratedCover"
+import GeneratedCover from "./GeneratedCover";
 
 type CarteAlbumProps = {
-  title: string
-  artist: string
-  pochette?: string
-  isConnected: boolean
-  onAdd?: () => void
-  onClick?: () => void
-}
+  title: string;
+  artist: string;
+  pochette?: string;
+  isConnected: boolean;
+  onAdd?: () => void;
+  onClick?: () => void;
+};
 
-function CarteAlbum({ title, artist, isConnected, onAdd, onClick }: CarteAlbumProps) {
-
-  const [isFavorite, setIsFavorite] = useState(false)
+function CarteAlbum({
+  title,
+  artist,
+  isConnected,
+  onAdd,
+  onClick,
+}: CarteAlbumProps) {
+  const [isFavorite, setIsFavorite] = useState(false);
 
   const toggleFavorite = () => {
-    setIsFavorite((prev) => !prev)
-  }
+    setIsFavorite((prev) => !prev);
+  };
 
   return (
     <div className="carte-album" id="carte-album" onClick={onClick}>
-
       <div className="pochette-wrapper">
-
         <GeneratedCover title={title} />
 
-
-        <Coeur
-          isFavorite={isFavorite}
-          isConnected={isConnected}
-          toggleFavorite={toggleFavorite}
-        />
+        <div className="actions-overlay">
+          <Coeur
+            isFavorite={isFavorite}
+            isConnected={isConnected}
+            toggleFavorite={toggleFavorite}
+          />
+        </div>
       </div>
 
       <article className="description">
@@ -44,11 +48,10 @@ function CarteAlbum({ title, artist, isConnected, onAdd, onClick }: CarteAlbumPr
           <button
             className="btn-plus"
             onClick={(e) => {
-              e.stopPropagation()
-              onAdd()
+              e.stopPropagation();
+              onAdd();
             }}
           >
-
             <svg
               xmlns="http://www.w3.org/2000/svg"
               width="30"
@@ -66,7 +69,7 @@ function CarteAlbum({ title, artist, isConnected, onAdd, onClick }: CarteAlbumPr
         )}
       </article>
     </div>
-  )
+  );
 }
 
-export default CarteAlbum
+export default CarteAlbum;

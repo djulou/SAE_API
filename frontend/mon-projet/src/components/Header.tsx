@@ -67,9 +67,6 @@ function Header({ onNavigate, isConnected, onLogout, currentPage, onSearch }: He
             <button className="btn-auth btn-login" onClick={() => onNavigate("login")}>
               Connexion
             </button>
-            <button className="btn-auth btn-register" onClick={() => onNavigate("register")}>
-              Inscription
-            </button>
           </div>
         ) : (
           <div className="auth-menu" ref={menuRef} style={{ position: "relative" }}>
