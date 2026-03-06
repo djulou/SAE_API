@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import coeur from "../assets/coeur.png";
 import playlistIcon from "../assets/playlist.png";
 import "./stats_user.css";

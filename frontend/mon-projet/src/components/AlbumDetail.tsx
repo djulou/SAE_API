@@ -31,7 +31,6 @@ type AlbumDetailProps = {
 // --- COMPOSANT LIGNE DE MUSIQUE ---
 function AlbumTrackRow({
   track,
-  index,
   isConnected,
   isActive,
   onPlay,

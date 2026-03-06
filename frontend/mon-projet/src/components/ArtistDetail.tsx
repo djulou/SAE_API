@@ -33,7 +33,6 @@ type ArtistDetailProps = {
 // ============================================================================
 function ArtistTrackRow({
   track,
-  index,
   isConnected,
   isActive,
   onPlay,

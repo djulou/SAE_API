@@ -31,7 +31,6 @@ type PlaylistDetailProps = {
 // --- COMPOSANT LIGNE DE MUSIQUE ---
 function PlaylistTrackRow({
   track,
-  index,
   isConnected,
   isActive,
   onPlay,

@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import Coeur from "./coeur"
-import plus from "../assets/plus.svg"
 
 type CarteChansonProps = {
   trackId: number
