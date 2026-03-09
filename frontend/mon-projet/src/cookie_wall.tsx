@@ -7,7 +7,7 @@ type CookieProps = {
 }
 
 export default function ConsentPopup({ onNavigate }: CookieProps) {
-  const [visible, setVisible] = useState(true)
+  const [visible, setVisible] = useState(false)
 
   useEffect(() => {
     const consent = localStorage.getItem("consent")
