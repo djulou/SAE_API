@@ -1,7 +1,7 @@
 from fastapi import FastAPI, Depends, HTTPException, WebSocket, WebSocketDisconnect, Request
 from typing import List, Optional
 from fastapi.middleware.cors import CORSMiddleware
-from sqlalchemy.orm import Session, sessionmaker
+from sqlalchemy.orm import Session, sessionmaker, selectinload
 from sqlalchemy import create_engine, or_, func, text
 import time
 
@@ -12,7 +12,7 @@ from models import (
     Album, User, Playlist, Track, Artist, ArtistAlbumTrack, ListeningHistory, UserAlbumListening, UserPlaylistListening,
     PlaylistUserFavorite, TrackUserFavorite, UserArtistFavorite, UserAlbumFavorite, PlaylistUser,
     PlaylistTrack, UserTrackListening, SearchHistory, ViewTrackMaterialise, ArtistAlbumTrack, ListeningHistory,
-    Role, Permission
+    Role, Permission, UserRole
 )
 
 import schema
@@ -1338,6 +1338,119 @@ def get_user_counts(db: Session = Depends(get_db), current_user: User = Depends(
     favs = db.execute(text("SELECT COUNT(*) FROM sae.Track_User_Favorite WHERE user_id = :uid"), {"uid": current_user.user_id}).scalar()
     playlists = db.execute(text("SELECT COUNT(*) FROM sae.Playlist WHERE user_id = :uid"), {"uid": current_user.user_id}).scalar()
     return {"favoris": favs, "playlists": playlists}
+
+# ==================== ADMIN ROUTES ====================
+
+@app.get("/admin/users", response_model=List[schema.UserAdmin])
+def get_all_users(db: Session = Depends(get_db), current_user: User = Depends(has_permission("role_manage"))):
+    """Récupère la liste de tous les utilisateurs avec leurs rôles (réservé aux admins)."""
+    users = db.query(User).options(
+        selectinload(User.roles)
+    ).all()
+    return users
+
+@app.get("/admin/roles", response_model=List[schema.RoleBase])
+def get_all_roles(db: Session = Depends(get_db), current_user: User = Depends(has_permission("role_manage"))):
+    """Récupère la liste de tous les rôles disponibles."""
+    roles = db.query(Role).all()
+    return roles
+
+@app.put("/admin/users/{user_id}/role", status_code=200)
+def update_user_role(user_id: int, role_update: schema.UserRoleUpdate, db: Session = Depends(get_db), current_user: User = Depends(has_permission("role_manage"))):
+    """Change le rôle d'un utilisateur (réservé aux admins)."""
+    user = db.query(User).filter(User.user_id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="Utilisateur non trouvé")
+
+    role = db.query(Role).filter(Role.role_id == role_update.role_id).first()
+    if not role:
+        raise HTTPException(status_code=404, detail="Rôle non trouvé")
+
+    # Supprimer tous les rôles existants de l'utilisateur
+    db.query(UserRole).filter(UserRole.user_id == user_id).delete()
+
+    # Ajouter le nouveau rôle
+    user_role = UserRole(user_id=user_id, role_id=role_update.role_id)
+    db.add(user_role)
+    db.commit()
+
+    return {"message": f"Rôle de l'utilisateur {user.pseudo or user.user_login} mis à jour vers {role.role_name}"}
+
+@app.delete("/admin/users/{user_id}", status_code=200)
+def delete_user_admin(user_id: int, db: Session = Depends(get_db), current_user: User = Depends(has_permission("role_manage"))):
+    """Supprime complètement un utilisateur (réservé aux admins)."""
+    user = db.query(User).filter(User.user_id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="Utilisateur non trouvé")
+
+    # Supprimer toutes les relations avant de supprimer l'utilisateur
+    # Supprimer les rôles
+    db.query(UserRole).filter(UserRole.user_id == user_id).delete()
+    # Supprimer les favoris
+    db.query(TrackUserFavorite).filter(TrackUserFavorite.user_id == user_id).delete()
+    db.query(UserArtistFavorite).filter(UserArtistFavorite.user_id == user_id).delete()
+    db.query(UserAlbumFavorite).filter(UserAlbumFavorite.user_id == user_id).delete()
+    # Supprimer les playlists
+    db.query(PlaylistUser).filter(PlaylistUser.user_id == user_id).delete()
+    # Supprimer les statistiques d'écoute
+    db.query(UserTrackListening).filter(UserTrackListening.user_id == user_id).delete()
+    db.query(UserAlbumListening).filter(UserAlbumListening.user_id == user_id).delete()
+    db.query(UserPlaylistListening).filter(UserPlaylistListening.user_id == user_id).delete()
+    # Supprimer l'historique de recherche
+    db.query(SearchHistory).filter(SearchHistory.user_id == user_id).delete()
+    # Supprimer les stats utilisateur
+    db.query(StatsUser).filter(StatsUser.user_id == user_id).delete()
+
+    # Supprimer l'utilisateur
+    db.delete(user)
+    db.commit()
+
+    return {"message": f"Utilisateur {user.pseudo or user.user_login} supprimé définitivement"}
+
+# ==================== TEMPORARY DEBUG ROUTES ====================
+
+@app.post("/debug/make_admin/{user_id}")
+def make_user_admin(user_id: int, db: Session = Depends(get_db)):
+    """Route temporaire pour donner le rôle ADMIN à un utilisateur (DEBUG ONLY)"""
+    user = db.query(User).filter(User.user_id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="Utilisateur non trouvé")
+
+    admin_role = db.query(Role).filter(Role.role_name == "ADMIN").first()
+    if not admin_role:
+        raise HTTPException(status_code=404, detail="Rôle ADMIN non trouvé")
+
+    # Vérifier si l'utilisateur a déjà le rôle ADMIN
+    existing_role = db.query(UserRole).filter(
+        UserRole.user_id == user_id,
+        UserRole.role_id == admin_role.role_id
+    ).first()
+
+    if existing_role:
+        return {"message": f"L'utilisateur {user.user_login} a déjà le rôle ADMIN"}
+
+    # Ajouter le rôle ADMIN
+    user_role = UserRole(user_id=user_id, role_id=admin_role.role_id)
+    db.add(user_role)
+    db.commit()
+
+    return {"message": f"Rôle ADMIN attribué à {user.user_login}"}
+
+@app.get("/debug/users")
+def get_all_users_debug(db: Session = Depends(get_db)):
+    """Route temporaire pour voir tous les utilisateurs et leurs rôles (DEBUG ONLY)"""
+    users = db.query(User).all()
+    result = []
+    for user in users:
+        roles = [r.role_name for r in user.roles]
+        result.append({
+            "user_id": user.user_id,
+            "login": user.user_login,
+            "email": user.email,
+            "pseudo": user.pseudo,
+            "roles": roles
+        })
+    return result
 
 ###########################################
 ##      AUTORISATIONS & LANCEMENT        ##

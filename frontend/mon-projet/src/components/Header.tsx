@@ -97,10 +97,10 @@ function Header({ onNavigate, isConnected, onLogout, currentPage, onSearch }: He
                   {hasRole("ADMIN") && (
                     <li 
                       className="admin-option" 
-                      onClick={() => handleNavigation("gestion_roles" as Page)}
+                      onClick={() => handleNavigation("admin_users")}
                       style={{ fontWeight: "bold" }}
                     >
-                      Gestion des rôles
+                      👑 Administration
                     </li>
                   )}
 

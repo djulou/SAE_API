@@ -24,6 +24,8 @@ import AlbumsFavorites from "./components/AlbumsFavorites"
 import TracksFavorites from "./components/TracksFavorites"
 import ArtistsFavorites from "./components/ArtistsFavorites"
 
+import RolePage from "./components/roles_page"
+
 import { getCurrentUser, logout } from "./services/authService"
 import type { Page } from "./types/Page"
 
@@ -185,6 +187,8 @@ function App() {
           />
         )
 
+      case "admin_users":
+        return <RolePage />
 
       case "detail_compte":
         return <DetailCompte />

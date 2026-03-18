@@ -290,3 +290,30 @@ class UserAlbumListeningUpdate(BaseModel):
 
 class UserPlaylistListeningUpdate(BaseModel):
     nb_listening: int
+
+# ==================== Admin Schemas ====================
+
+class RoleBase(BaseModel):
+    role_id: int
+    role_name: str
+
+    class Config:
+        from_attributes = True
+
+class UserAdmin(BaseModel):
+    """Utilisateur pour l'administration (avec rôles)."""
+    user_id: int
+    pseudo: Optional[str] = None
+    email: str
+    user_login: str
+    image: Optional[str] = None
+    birth_year: Optional[date] = None
+    created_at: datetime
+    roles: List[RoleBase] = []
+
+    class Config:
+        from_attributes = True
+
+class UserRoleUpdate(BaseModel):
+    """Mise à jour du rôle d'un utilisateur."""
+    role_id: int

@@ -1,4 +1,4 @@
-import React, { useMemo } from "react"
+import { useMemo } from "react"
 
 type GeneratedCoverProps = {
   title: string
@@ -42,13 +42,13 @@ function getInitials(title: string): string {
 
 
 export default function GeneratedCover({ title }: GeneratedCoverProps) {
-  const { hash, gradient, initials, shapeSeed } = useMemo(() => {
-    const hash = stringHash(title)
-    const gradient = generateGradient(hash)
+  const { gradient, initials, shapeSeed } = useMemo(() => {
+    const hashValue = stringHash(title)
+    const gradient = generateGradient(hashValue)
     const initials = getInitials(title)
-    const shapeSeed = Math.abs(hash) % 100
+    const shapeSeed = Math.abs(hashValue) % 100
 
-    return { hash, gradient, initials, shapeSeed }
+    return { hash: hashValue, gradient, initials, shapeSeed }
   }, [title])
 
   return (
