@@ -11,6 +11,7 @@ python-multipart
 python-dotenv
 
 # AI & Recommendations
+--extra-index-url https://download.pytorch.org/whl/cpu
 sentence-transformers
 torch
 pandas

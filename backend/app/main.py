@@ -507,6 +507,41 @@ def get_playlist_tracks(playlist_id: int, db: Session = Depends(get_db), current
     
     return tracks
 
+@app.delete("/playlist/{playlist_id}/tracks/{track_id}")
+def remove_track_from_playlist(playlist_id: int, track_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    playlist = db.query(Playlist).filter(Playlist.playlist_id == playlist_id).first()
+    if not playlist:
+        raise HTTPException(status_code=404, detail="Playlist non trouvée")
+    if playlist.user_id != current_user.user_id:
+        raise HTTPException(status_code=403, detail="Vous ne pouvez modifier que vos propres playlists")
+    
+    pt = db.query(PlaylistTrack).filter(
+        PlaylistTrack.playlist_id == playlist_id,
+        PlaylistTrack.track_id == track_id
+    ).first()
+    
+    if not pt:
+        raise HTTPException(status_code=404, detail="Titre non trouvé dans cette playlist")
+    
+    db.delete(pt)
+    db.commit()
+    return {"detail": "Titre retiré de la playlist"}
+
+@app.delete("/playlist/{playlist_id}")
+def delete_playlist(playlist_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    playlist = db.query(Playlist).filter(Playlist.playlist_id == playlist_id).first()
+    if not playlist:
+        raise HTTPException(status_code=404, detail="Playlist non trouvée")
+    if playlist.user_id != current_user.user_id:
+        raise HTTPException(status_code=403, detail="Vous ne pouvez supprimer que vos propres playlists")
+    
+    # On supprime d'abord les entrées dans PlaylistTrack (si pas de cascade en BDD)
+    db.query(PlaylistTrack).filter(PlaylistTrack.playlist_id == playlist_id).delete()
+    
+    db.delete(playlist)
+    db.commit()
+    return {"detail": "Playlist supprimée avec succès"}
+
 @app.get("/user")
 def get_current_user_profile(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     user = db.query(User).filter(User.user_id == current_user.user_id).first()

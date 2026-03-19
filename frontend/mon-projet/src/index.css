@@ -39,7 +39,8 @@
   --container-padding: 24px;
 }
 
-html, body {
+html,
+body {
   height: 100%;
   margin: 0;
 }
@@ -202,7 +203,8 @@ button:focus-visible {
 }
 
 /* Conteneur */
-.auth-menu, .contact-page {
+.auth-menu,
+.contact-page {
   display: flex;
   align-items: center;
   margin: 0 0 0 1em;
@@ -380,7 +382,8 @@ button:focus-visible {
 }
 
 /* On s'assure que le coeur ne s'envole pas en haut à droite dans les listes */
-.track-row .coeur, .player-sticky-bar .coeur {
+.track-row .coeur,
+.player-sticky-bar .coeur {
   position: static !important;
 }
 
@@ -556,7 +559,8 @@ button:focus-visible {
 }
 
 /* Carte */
-.login-container, .contact-form{
+.login-container,
+.contact-form {
   max-width: 400px;
   /* width: 800px; */
   max-width: 95%;
@@ -588,7 +592,8 @@ button:focus-visible {
   border: none;
   padding: 0 16px;
 }
-.login-form .champ{
+
+.login-form .champ {
   height: 2em;
 }
 
@@ -598,18 +603,21 @@ button:focus-visible {
   justify-content: space-between;
   gap: 24px;
 }
-.tag-container{ 
+
+.tag-container {
   display: "flex";
   gap: "12px";
-  flex-wrap: "wrap" }
+  flex-wrap: "wrap"
+}
 
-.tag-selected{
+.tag-selected {
   background: var(--color-primary-light);
   margin: 1em;
   color: var(--color-bg);
 
 }
-.tag-not-selected{
+
+.tag-not-selected {
   background: var(--color-text-muted);
   margin: 1em;
 }
@@ -1044,45 +1052,48 @@ button:focus-visible {
   color: var(--color-text-muted);
 }
 
-.CGU, .mentions-legales{
+.CGU,
+.mentions-legales {
   margin: 5%;
 }
 
 /* zone d'ecoute */
 
 .lecture-page {
-    background-color: var(--color-bg-light); /* Utilise ta variable plutôt que border */
-    display: flex;
-    flex-direction: row; /* Aligne l'image et le lecteur sur une ligne */
-    align-items: center;
-    justify-content: space-between;
-    padding: 1.5rem;
-    border-radius: var(--radius-lg);
-    gap: 2rem;
-    margin: 1rem 0;
+  background-color: var(--color-bg-light);
+  /* Utilise ta variable plutôt que border */
+  display: flex;
+  flex-direction: row;
+  /* Aligne l'image et le lecteur sur une ligne */
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.5rem;
+  border-radius: var(--radius-lg);
+  gap: 2rem;
+  margin: 1rem 0;
 }
 
 .lecture-page .info-image {
-    display: flex;
-    align-items: center;
-    
-    
+  display: flex;
+  align-items: center;
+
+
 }
 
-.lecture-page .info-image  .pochette-wrapper{
-    width: 100%;
-    margin: 0.5em;
+.lecture-page .info-image .pochette-wrapper {
+  width: 100%;
+  margin: 0.5em;
 }
 
-.lecture-page .play-btn{
-    color: var(--color-text);
-    background-color: var(--color-primary );                                                                                                                                   
+.lecture-page .play-btn {
+  color: var(--color-text);
+  background-color: var(--color-primary);
 }
 
-.lecture-page .audio-player{
-    display: flex;
-    flex-direction: column;
-    }
+.lecture-page .audio-player {
+  display: flex;
+  flex-direction: column;
+}
 
 /* ======================================================
    SKELETON LOADING
@@ -1105,6 +1116,7 @@ button:focus-visible {
   background-size: 800px 100%;
   animation: skeleton-shimmer 1.5s infinite linear;
 }
+
 /* ======================================================
    DOCK PLAYER ÉPURÉ (SANS SUPERPOSITIONS)
    ====================================================== */
@@ -1130,7 +1142,8 @@ button:focus-visible {
 /* On réorganise Lecture en 3 colonnes distinctes */
 .player-sticky-bar .lecture-page {
   display: grid !important;
-  grid-template-columns: 250px 1fr 150px; /* Gauche | Centre | Droite */
+  grid-template-columns: 250px 1fr 150px;
+  /* Gauche | Centre | Droite */
   align-items: center;
   width: 100%;
   gap: 20px;
@@ -1197,11 +1210,12 @@ button:focus-visible {
 
 /* On nettoie les boutons pour éviter les superpositions */
 .player-sticky-bar .actions-overlay {
-    position: static !important; /* On retire le positionnement sur l'image */
-    display: flex;
+  position: static !important;
+  /* On retire le positionnement sur l'image */
+  display: flex;
 }
 
-.player-sticky-bar .btn-plus, 
+.player-sticky-bar .btn-plus,
 .player-sticky-bar .coeur {
   position: static !important;
   background: transparent !important;
@@ -1275,18 +1289,21 @@ button:focus-visible {
 }
 
 .btn-main-play {
-    background: transparent;
-    color: white;
-    border: none;
-    cursor: pointer;
-    transition: transform 0.2s;
+  background: transparent;
+  color: white;
+  border: none;
+  cursor: pointer;
+  transition: transform 0.2s;
 }
 
-.btn-main-play:hover { transform: scale(1.1); }
+.btn-main-play:hover {
+  transform: scale(1.1);
+}
 
 /* Neutralise le positionnement absolu du coeur dans le player */
 .player-sticky-bar .coeur {
-  position: static !important; /* Annule le absolute, top et right */
+  position: static !important;
+  /* Annule le absolute, top et right */
   margin: 0;
   padding: 5px;
   display: flex;
@@ -1308,7 +1325,8 @@ button:focus-visible {
 
 /* On neutralise le positionnement absolu quand le coeur est dans une ligne */
 .track-row .coeur {
-  position: static !important; /* Annule le top: 8px et right: 8px */
+  position: static !important;
+  /* Annule le top: 8px et right: 8px */
   margin: 0;
   padding: 0;
   display: flex;
@@ -1322,8 +1340,9 @@ button:focus-visible {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 40px;
+  width: 80px;
 }
+
 
 /* Conteneur parent */
 .volume-control-container {
@@ -1336,13 +1355,14 @@ button:focus-visible {
 /* Bulle qui contient le slider */
 .volume-popover {
   position: absolute;
-  bottom: 40px; /* Ajuste pour être juste au dessus de l'icône */
+  bottom: 40px;
+  /* Ajuste pour être juste au dessus de l'icône */
   left: 50%;
   transform: translateX(-50%);
   background: #282828;
   padding: 12px 8px;
   border-radius: 20px;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1355,12 +1375,14 @@ button:focus-visible {
   appearance: none;
   width: 4px;
   height: 80px;
-  background: rgba(255,255,255,0.2);
+  background: rgba(255, 255, 255, 0.2);
   border-radius: 2px;
   outline: none;
   /* Rotation pour le mettre vertical */
-  writing-mode: bt-lr; /* Pour certains navigateurs */
-  appearance: slider-vertical; /* Pour Safari/Chrome */
+  writing-mode: bt-lr;
+  /* Pour certains navigateurs */
+  appearance: slider-vertical;
+  /* Pour Safari/Chrome */
 }
 
 /* Style du bouton icône */
@@ -1392,7 +1414,7 @@ button:focus-visible {
 .artist-image-circle {
   border-radius: 50% !important;
   overflow: hidden;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
 }
 
 .artist-header {
@@ -1442,87 +1464,119 @@ button:focus-visible {
 }
 
 .favorites-page h1 {
-    margin-bottom: 30px;
-    border-bottom: 1px solid #333;
-    padding-bottom: 10px;
+  margin-bottom: 30px;
+  border-bottom: 1px solid #333;
+  padding-bottom: 10px;
 }
 
 .stats-section {
-    padding: 20px;
-    color: white;
+  padding: 20px;
+  color: white;
 }
 
 .stats-grid-top {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 20px;
-    margin-bottom: 30px;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+  margin-bottom: 30px;
 }
 
 .stat-card-mini {
-    background: #1a1a1a;
-    padding: 20px;
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    border: 1px solid #333;
+  background: #1a1a1a;
+  padding: 20px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  border: 1px solid #333;
 }
 
 .stat-icon {
-    filter: brightness(0) invert(1);
-    width: 40px;
-    height: 40px;
-    object-fit: contain;
+  filter: brightness(0) invert(1);
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
 }
 
 .stat-value {
-    font-size: 1.5rem;
-    font-weight: bold;
-    margin: 0;
-    color: #ff9800; /* Ton orange */
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin: 0;
+  color: #ff9800;
+  /* Ton orange */
 }
 
 .stat-card-large {
-    background: #1a1a1a;
-    padding: 25px;
-    border-radius: 15px;
-    margin-bottom: 20px;
-    border: 1px solid #333;
+  background: #1a1a1a;
+  padding: 25px;
+  border-radius: 15px;
+  margin-bottom: 20px;
+  border: 1px solid #333;
 }
 
 .progress-bar {
-    background: #333;
-    height: 8px;
-    border-radius: 4px;
-    margin-top: 8px;
-    overflow: hidden;
+  background: #333;
+  height: 8px;
+  border-radius: 4px;
+  margin-top: 8px;
+  overflow: hidden;
 }
 
 .progress-fill {
-    height: 100%;
-    transition: width 0.5s ease-in-out;
+  height: 100%;
+  transition: width 0.5s ease-in-out;
 }
 
 .track-fill {
-    background: linear-gradient(90deg, #ff9800, #f44336); /* Dégradé orange/rouge */
+  background: linear-gradient(90deg, #ff9800, #f44336);
+  /* Dégradé orange/rouge */
 }
 
 .genre-fill {
-    background: #ff9800;
+  background: #ff9800;
 }
 
 .visual-item {
-    margin-bottom: 15px;
-    list-style: none;
+  margin-bottom: 15px;
+  list-style: none;
 }
 
 .item-text {
-    display: flex;
-    justify-content: space-between;
-    font-size: 0.9rem;
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.9rem;
 }
 
 .item-count {
-    color: #888;
+  color: #888;
+}
+
+/* Boutons de suppression mini (Sidebar) */
+.btn-delete-playlist-mini {
+  background: color-bg;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: transform 0.2s;
+  margin-left: 10px;
+  flex-shrink: 0;
+  padding: 0;
+}
+
+.btn-delete-playlist-mini:hover {
+  transform: scale(1.1);
+  background: #ff5f5f;
+}
+
+.btn-delete-playlist-mini img {
+  display: block;
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
+  filter: brightness(0) invert(1);
 }

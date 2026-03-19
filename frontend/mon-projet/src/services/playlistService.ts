@@ -37,22 +37,19 @@ export async function createPlaylist(title: string, userId: number): Promise<Pla
             "Authorization": `Bearer ${token}`
         },
         // On s'assure que playlist_name est une string et que user_id est bien présent
-        body: JSON.stringify({ 
-            playlist_name: String(title), 
-            user_id: userId 
+        body: JSON.stringify({
+            playlist_name: String(title),
+            user_id: userId
         })
     });
 
     if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        // Cela affichera précisément quel champ pose problème dans ta console
-        console.error("Erreur API createPlaylist (422):", errorData);
-        
         // Gestion propre des messages d'erreur FastAPI (qui sont souvent des listes dans 'detail')
-        const message = Array.isArray(errorData.detail) 
-            ? errorData.detail.map((d: any) => d.msg).join(", ") 
+        const message = Array.isArray(errorData.detail)
+            ? errorData.detail.map((d: any) => d.msg).join(", ")
             : errorData.detail;
-            
+
         throw new Error(message || "Erreur lors de la création de la playlist");
     }
 
@@ -68,9 +65,9 @@ export async function addTrackToPlaylist(playlistId: number, trackId: number): P
             "Content-Type": "application/json",
             "Authorization": `Bearer ${token}`
         },
-        body: JSON.stringify({ 
-            playlist_id: Number(playlistId), 
-            track_id: Number(trackId) 
+        body: JSON.stringify({
+            playlist_id: Number(playlistId),
+            track_id: Number(trackId)
         })
     });
 
@@ -80,3 +77,38 @@ export async function addTrackToPlaylist(playlistId: number, trackId: number): P
         throw new Error(errorData.detail || "Impossible d'ajouter le titre à la playlist");
     }
 }
+
+export async function deletePlaylist(playlistId: number): Promise<void> {
+    const token = getAuthToken();
+
+    const response = await fetch(`${API_URL}/playlist/${playlistId}`, {
+        method: "DELETE",
+        headers: {
+            "Authorization": `Bearer ${token}`
+        }
+    });
+
+    if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        console.error("Erreur API deletePlaylist:", response.status, errorData);
+        throw new Error(errorData.detail || "Impossible de supprimer la playlist");
+    }
+}
+
+export async function removeTrackFromPlaylist(playlistId: number, trackId: number): Promise<void> {
+    const token = getAuthToken();
+
+    const response = await fetch(`${API_URL}/playlist/${playlistId}/tracks/${trackId}`, {
+        method: "DELETE",
+        headers: {
+            "Authorization": `Bearer ${token}`
+        }
+    });
+
+    if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        console.error("Erreur API removeTrackFromPlaylist:", response.status, errorData);
+        throw new Error(errorData.detail || "Impossible de retirer le titre de la playlist");
+    }
+}
+

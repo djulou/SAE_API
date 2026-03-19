@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import Coeur from "./coeur";
 import GeneratedCover from "./GeneratedCover";
 import Lecture from "./lecture";
+import { removeTrackFromPlaylist } from "../services/playlistService";
+import poubelleIcon from "../assets/poubelle.png";
 
 // --- TYPES ---
 type TrackData = {
@@ -34,12 +36,14 @@ function PlaylistTrackRow({
   isConnected,
   isActive,
   onPlay,
+  onRemove,
 }: {
   track: TrackData;
   index: number;
   isConnected: boolean;
   isActive: boolean;
   onPlay: () => void;
+  onRemove: (e: React.MouseEvent) => void;
 }) {
   const [isHovered, setIsHovered] = useState(false);
   const [isFavorite, setIsFavorite] = useState(false);
@@ -90,7 +94,7 @@ function PlaylistTrackRow({
         </span>
       </div>
 
-      <div className="col-actions">
+      <div className="col-actions" style={{ display: "flex", gap: "10px", alignItems: "center" }}>
         {(isHovered || isFavorite) && (
           <Coeur
             isFavorite={isFavorite}
@@ -100,6 +104,15 @@ function PlaylistTrackRow({
               setIsFavorite(!isFavorite);
             }}
           />
+        )}
+        {isHovered && (
+          <button
+            className="btn-delete-playlist-mini"
+            onClick={onRemove}
+            title="Retirer de la playlist"
+          >
+            <img src={poubelleIcon} alt="Supprimer" width="14" height="14" style={{ filter: "brightness(0) invert(1)" }} />
+          </button>
         )}
       </div>
 
@@ -118,27 +131,40 @@ export default function PlaylistDetail({
   const [loading, setLoading] = useState(true);
   const [activeTrack, setActiveTrack] = useState<TrackData | null>(null);
 
-  useEffect(() => {
-    async function loadData() {
-      setLoading(true);
+  const loadData = async () => {
+    setLoading(true);
+    try {
+      const token = localStorage.getItem("token");
+      const headers: Record<string, string> = {};
+      if (token) headers["Authorization"] = `Bearer ${token}`;
+
+      const resP = await fetch(`http://127.0.0.1:8000/playlist/${playlistId}`, { headers });
+      if (resP.ok) setPlaylist(await resP.json());
+
+      const resT = await fetch(`http://127.0.0.1:8000/playlist/${playlistId}/tracks`, { headers });
+      if (resT.ok) setTracks(await resT.json());
+    } catch (err) {
+      console.error("Erreur chargement playlist:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeleteTrack = async (trackId: number) => {
+    if (window.confirm("Retirer ce titre de la playlist ?")) {
       try {
-        const token = localStorage.getItem("token");
-        const headers: Record<string, string> = {};
-        if (token) headers["Authorization"] = `Bearer ${token}`;
-
-        const resP = await fetch(`http://127.0.0.1:8000/playlist/${playlistId}`, { headers });
-        if (resP.ok) setPlaylist(await resP.json());
-
-        const resT = await fetch(`http://127.0.0.1:8000/playlist/${playlistId}/tracks`, { headers });
-        if (resT.ok) setTracks(await resT.json());
-      } catch (err) {
-        console.error("Erreur chargement playlist:", err);
-      } finally {
-        setLoading(false);
+        await removeTrackFromPlaylist(playlistId, trackId);
+        loadData(); // Recharger la liste
+      } catch (err: any) {
+        alert(err.message);
       }
     }
+  };
+
+  useEffect(() => {
     loadData();
   }, [playlistId]);
+
 
   if (loading) return <div className="loading">Chargement de la playlist...</div>;
 
@@ -201,7 +227,12 @@ export default function PlaylistDetail({
               isConnected={isConnected}
               isActive={activeTrack?.track_id === track.track_id}
               onPlay={() => setActiveTrack({ ...track, playlistId: playlist?.playlist_id })}
+              onRemove={(e) => {
+                e.stopPropagation();
+                handleDeleteTrack(track.track_id);
+              }}
             />
+
           ))}
         </div>
       </div>

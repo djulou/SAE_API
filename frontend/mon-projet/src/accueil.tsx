@@ -271,16 +271,17 @@ export default function Accueil({
   return (
     <>
       <div className="accueil-layout">
-         {isConnected && (
-        <NavBarSide 
+        {isConnected && (
+          <NavBarSide
             onNavigate={onNavigate}
             isConnected={isConnected}
             setModalOpen={setModalOpen}
             onOpenPlaylist={onOpenPlaylist}
             setSelectedTrackId={setSelectedTrackId}
             userPlaylists={userPlaylists}
-        />
-         )}
+            onPlaylistDeleted={loadUserPlaylists}
+          />
+        )}
         <div className="accueil-content">
 
           {searchQuery && (
