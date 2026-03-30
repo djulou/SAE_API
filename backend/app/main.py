@@ -4,15 +4,15 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session, sessionmaker, selectinload
 from sqlalchemy import create_engine, or_, func, text
 import time
+import random
 
-import time
 import bcrypt
 
 from models import ( 
     Album, User, Playlist, Track, Artist, ArtistAlbumTrack, ListeningHistory, UserAlbumListening, UserPlaylistListening,
     PlaylistUserFavorite, TrackUserFavorite, UserArtistFavorite, UserAlbumFavorite, PlaylistUser,
     PlaylistTrack, UserTrackListening, SearchHistory, ViewTrackMaterialise, ArtistAlbumTrack, ListeningHistory,
-    Role, Permission, UserRole
+    Role, Permission, UserRole, StatsUser
 )
 
 import schema
@@ -575,6 +575,46 @@ def get_user_favorite_albums(
     ).all()
 
     return albums
+
+
+@app.get("/blind-test/question", response_model=schema.BlindTestQuestion)
+def get_blind_test_question(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    """Génère une question Blind Test en fournissant un extrait audio et 4 choix."""
+    choices = db.query(ViewTrackMaterialise).filter(ViewTrackMaterialise.preview.isnot(None)).order_by(func.random()).limit(4).all()
+
+    if len(choices) < 4:
+        raise HTTPException(status_code=404, detail="Pas assez de pistes disponibles pour le blind-test")
+
+    correct_track = choices[0]
+    random.shuffle(choices)
+
+    return schema.BlindTestQuestion(
+        question_track_id=correct_track.track_id,
+        preview=correct_track.preview,
+        choices=[
+            schema.BlindTestChoice(
+                track_id=t.track_id,
+                track_title=t.track_title or "Titre inconnu",
+                artist_name=t.artist_name or "Artiste inconnu"
+            )
+            for t in choices
+        ]
+    )
+
+
+@app.post("/blind-test/answer", response_model=schema.BlindTestResult)
+def submit_blind_test_answer(answer: schema.BlindTestAnswer, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    question_track = db.query(ViewTrackMaterialise).filter(ViewTrackMaterialise.track_id == answer.question_track_id).first()
+    if not question_track:
+        raise HTTPException(status_code=404, detail="Question du blind-test introuvable")
+
+    is_correct = answer.selected_track_id == question_track.track_id
+    return schema.BlindTestResult(
+        correct=is_correct,
+        correct_track_id=question_track.track_id,
+        selected_track_id=answer.selected_track_id,
+    )
+
 
 ####### RECOMMANDATIONS IA ##
 

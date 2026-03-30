@@ -25,6 +25,7 @@ import TracksFavorites from "./components/TracksFavorites"
 import ArtistsFavorites from "./components/ArtistsFavorites"
 
 import RolePage from "./components/roles_page"
+import BlindTest from "./components/BlindTest"
 
 import { getCurrentUser, logout } from "./services/authService"
 import type { Page } from "./types/Page"
@@ -189,6 +190,9 @@ function App() {
 
       case "admin_users":
         return <RolePage />
+
+      case "blind_test":
+        return <BlindTest isConnected={isConnected} userId={userId} onNavigate={setPage} />
 
       case "detail_compte":
         return <DetailCompte />

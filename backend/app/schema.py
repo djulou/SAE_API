@@ -255,6 +255,36 @@ class SearchHistoryCreate(BaseModel):
     history_query: str
 
 
+# ==================== Blind Test Schemas ====================
+class BlindTestChoice(BaseModel):
+    track_id: int
+    track_title: Optional[str] = None
+    artist_name: Optional[str] = None
+
+    class Config:
+        from_attributes = True
+
+
+class BlindTestQuestion(BaseModel):
+    question_track_id: int
+    preview: Optional[str] = None
+    choices: List[BlindTestChoice] = []
+
+    class Config:
+        from_attributes = True
+
+
+class BlindTestAnswer(BaseModel):
+    question_track_id: int
+    selected_track_id: int
+
+
+class BlindTestResult(BaseModel):
+    correct: bool
+    correct_track_id: int
+    selected_track_id: int
+
+
 ##########################################
 ##            SCHÉMAS PATCH             ##
 ##########################################

@@ -58,6 +58,10 @@ function Header({ onNavigate, isConnected, onLogout, currentPage, onSearch }: He
             onKeyDown={handleKeyDown}
           />
         </div>
+
+        {isConnected && (
+          <button className="btn-blind-test" onClick={() => handleNavigation("blind_test")}>Blind Test</button>
+        )}
         </>
       )}
 
@@ -100,7 +104,7 @@ function Header({ onNavigate, isConnected, onLogout, currentPage, onSearch }: He
                       onClick={() => handleNavigation("admin_users")}
                       style={{ fontWeight: "bold" }}
                     >
-                      👑 Administration
+                      Administration
                     </li>
                   )}
 
