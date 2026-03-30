@@ -104,15 +104,6 @@ function Header({ onNavigate, isConnected, onLogout, currentPage, onSearch }: He
                     </li>
                   )}
 
-                  {hasRole("ARTIST") && (
-                    <li 
-                      className="artist-option" 
-                      onClick={() => handleNavigation("gestion_roles" as Page)}
-                      style={{ fontWeight: "bold" }}
-                    >
-                      Gestion du compte
-                    </li>
-                  )}
 
                   <hr />
                   
