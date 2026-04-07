@@ -577,45 +577,6 @@ def get_user_favorite_albums(
     return albums
 
 
-@app.get("/blind-test/question", response_model=schema.BlindTestQuestion)
-def get_blind_test_question(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    """Génère une question Blind Test en fournissant un extrait audio et 4 choix."""
-    choices = db.query(ViewTrackMaterialise).filter(ViewTrackMaterialise.preview.isnot(None)).order_by(func.random()).limit(4).all()
-
-    if len(choices) < 4:
-        raise HTTPException(status_code=404, detail="Pas assez de pistes disponibles pour le blind-test")
-
-    correct_track = choices[0]
-    random.shuffle(choices)
-
-    return schema.BlindTestQuestion(
-        question_track_id=correct_track.track_id,
-        preview=correct_track.preview,
-        choices=[
-            schema.BlindTestChoice(
-                track_id=t.track_id,
-                track_title=t.track_title or "Titre inconnu",
-                artist_name=t.artist_name or "Artiste inconnu"
-            )
-            for t in choices
-        ]
-    )
-
-
-@app.post("/blind-test/answer", response_model=schema.BlindTestResult)
-def submit_blind_test_answer(answer: schema.BlindTestAnswer, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    question_track = db.query(ViewTrackMaterialise).filter(ViewTrackMaterialise.track_id == answer.question_track_id).first()
-    if not question_track:
-        raise HTTPException(status_code=404, detail="Question du blind-test introuvable")
-
-    is_correct = answer.selected_track_id == question_track.track_id
-    return schema.BlindTestResult(
-        correct=is_correct,
-        correct_track_id=question_track.track_id,
-        selected_track_id=answer.selected_track_id,
-    )
-
-
 ####### RECOMMANDATIONS IA ##
 
 # Import lazy du recommandeur (évite le chargement si pas utilisé)
@@ -713,6 +674,141 @@ def get_user_recommendations_detailed(
     ordered_tracks = [tracks_dict[tid] for tid in track_ids if tid in tracks_dict]
     
     return ordered_tracks
+
+
+def _get_user_recommendation_candidates(db: Session, current_user: User, limit: int = 20):
+    """Récupère des pistes recommandées pour l'utilisateur."""
+    search_results = db.query(SearchHistory.history_query).filter(
+        SearchHistory.user_id == current_user.user_id
+    ).order_by(SearchHistory.history_timestamp.desc()).limit(20).all()
+
+    if not search_results:
+        return []
+
+    history = [row[0] for row in search_results if row[0]]
+    history.reverse()
+
+    recommender = get_recommender()
+    if recommender is None or not recommender.is_ready:
+        return []
+
+    track_ids = recommender.predict(history, top_k=limit)
+    if not track_ids:
+        return []
+
+    tracks_db = db.query(ViewTrackMaterialise).filter(
+        ViewTrackMaterialise.track_id.in_(track_ids),
+        ViewTrackMaterialise.preview.isnot(None)
+    ).all()
+
+    tracks_dict = {t.track_id: t for t in tracks_db}
+    ordered_tracks = [tracks_dict[tid] for tid in track_ids if tid in tracks_dict]
+    return ordered_tracks
+
+
+def _get_similar_decoy_tracks(correct_track, db: Session, decoys_needed: int = 3):
+    """Utilise le TF-IDF pour trouver des pistes proches pour les mauvaises réponses."""
+    from recommender.TF_IDF import ContentRecommender
+
+    query = db.query(ViewTrackMaterialise).filter(
+        ViewTrackMaterialise.preview.isnot(None),
+        ViewTrackMaterialise.track_id != correct_track.track_id
+    )
+
+    if correct_track.track_genre_maj:
+        query = query.filter(ViewTrackMaterialise.track_genre_maj == correct_track.track_genre_maj)
+
+    candidates = query.order_by(func.random()).limit(100).all()
+    if len(candidates) < decoys_needed:
+        candidates = db.query(ViewTrackMaterialise).filter(
+            ViewTrackMaterialise.preview.isnot(None),
+            ViewTrackMaterialise.track_id != correct_track.track_id
+        ).order_by(func.random()).limit(100).all()
+
+    if not candidates:
+        return []
+
+    pool = [correct_track] + candidates
+    track_map = {track.track_id: track for track in pool}
+
+    data_dict = [
+        {
+            column.name: getattr(track, column.name)
+            for column in track.__table__.columns
+        }
+        for track in pool
+    ]
+
+    df = pd.DataFrame(data_dict).fillna("")
+    try:
+        rec = ContentRecommender(df)
+        top_k = min(max(decoys_needed * 3, 5), len(df) - 1)
+        similar_df = rec.recommend(correct_track.track_id, top_k=top_k, same_artist_penalty=0.5)
+        decoys = []
+        for row in similar_df.itertuples():
+            if row.track_id != correct_track.track_id and row.track_id in track_map:
+                decoys.append(track_map[row.track_id])
+            if len(decoys) >= decoys_needed:
+                break
+        return decoys[:decoys_needed]
+    except Exception as e:
+        print(f"Erreur TF-IDF blind-test : {e}")
+        return candidates[:decoys_needed]
+
+
+@app.get("/blind-test/question", response_model=schema.BlindTestQuestion)
+def get_blind_test_question(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    """Génère une question Blind Test à partir des recommandations."""
+    candidates = _get_user_recommendation_candidates(db, current_user, limit=20)
+
+    if not candidates:
+        candidates = db.query(ViewTrackMaterialise).filter(
+            ViewTrackMaterialise.preview.isnot(None)
+        ).order_by(ViewTrackMaterialise.track_listens.desc()).limit(20).all()
+
+    if not candidates:
+        raise HTTPException(status_code=404, detail="Aucune piste disponible pour le blind-test")
+
+    correct_track = random.choice(candidates)
+    decoys = _get_similar_decoy_tracks(correct_track, db, decoys_needed=3)
+
+    if len(decoys) < 3:
+        remaining = db.query(ViewTrackMaterialise).filter(
+            ViewTrackMaterialise.preview.isnot(None),
+            ViewTrackMaterialise.track_id != correct_track.track_id,
+            ~ViewTrackMaterialise.track_id.in_([t.track_id for t in decoys])
+        ).order_by(func.random()).limit(3 - len(decoys)).all()
+        decoys.extend(remaining)
+
+    choices = [correct_track] + decoys[:3]
+    random.shuffle(choices)
+
+    return schema.BlindTestQuestion(
+        question_track_id=correct_track.track_id,
+        preview=correct_track.preview,
+        choices=[
+            schema.BlindTestChoice(
+                track_id=track.track_id,
+                track_title=track.track_title or "Titre inconnu",
+                artist_name=track.artist_name or "Artiste inconnu"
+            )
+            for track in choices
+        ]
+    )
+
+
+@app.post("/blind-test/answer", response_model=schema.BlindTestResult)
+def submit_blind_test_answer(answer: schema.BlindTestAnswer, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    question_track = db.query(ViewTrackMaterialise).filter(ViewTrackMaterialise.track_id == answer.question_track_id).first()
+    if not question_track:
+        raise HTTPException(status_code=404, detail="Question du blind-test introuvable")
+
+    is_correct = answer.selected_track_id == question_track.track_id
+    return schema.BlindTestResult(
+        correct=is_correct,
+        correct_track_id=question_track.track_id,
+        selected_track_id=answer.selected_track_id,
+    )
 
 
 ####### RECOMMANDATIONS TF-IDF ##

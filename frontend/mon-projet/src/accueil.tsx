@@ -310,6 +310,16 @@ export default function Accueil({
             </>
           )}
 
+          {isConnected && (
+            <div className="blind-test-promo">
+              <div>
+                <h2>Testez votre oreille</h2>
+                <p>Commencez un Blind Test personnalisé à partir de vos recommandations.</p>
+              </div>
+              <button className="btn-primary" onClick={() => onNavigate("blind_test")}>Jouer au Blind Test</button>
+            </div>
+          )}
+
           <h2>Musiques Populaires</h2>
           {error ? (
             <div

@@ -255,6 +255,17 @@ class SearchHistoryCreate(BaseModel):
     history_query: str
 
 
+# ==================== UserTrackListening Schemas ============
+
+class UserTrackListeningCreate(BaseModel):
+    track_id: int
+
+# ==================== SearchHistory Schemas ============
+
+class SearchHistoryCreate(BaseModel):
+    history_query: str
+
+
 # ==================== Blind Test Schemas ====================
 class BlindTestChoice(BaseModel):
     track_id: int

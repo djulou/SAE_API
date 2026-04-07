@@ -180,6 +180,16 @@ function App() {
             isConnected={isConnected}
           />
       )
+
+      case "blind_test":
+        return (
+          <BlindTest
+            isConnected={isConnected}
+            userId={userId}
+            onNavigate={setPage}
+          />
+        )
+
       case "artist_detail":
         return (
           <ArtistDetail
@@ -190,9 +200,6 @@ function App() {
 
       case "admin_users":
         return <RolePage />
-
-      case "blind_test":
-        return <BlindTest isConnected={isConnected} userId={userId} onNavigate={setPage} />
 
       case "detail_compte":
         return <DetailCompte />

@@ -59,9 +59,6 @@ function Header({ onNavigate, isConnected, onLogout, currentPage, onSearch }: He
           />
         </div>
 
-        {isConnected && (
-          <button className="btn-blind-test" onClick={() => handleNavigation("blind_test")}>Blind Test</button>
-        )}
         </>
       )}
 
@@ -73,7 +70,8 @@ function Header({ onNavigate, isConnected, onLogout, currentPage, onSearch }: He
             </button>
           </div>
         ) : (
-          <div className="auth-menu" ref={menuRef} style={{ position: "relative" }}>
+          <div className="auth-menu" ref={menuRef} style={{ position: "relative", display: "flex", alignItems: "center", gap: "8px" }}>
+            <button className="btn-secondary" onClick={() => handleNavigation("blind_test")}>Blind Test</button>
             
             {/* Icône Utilisateur qui déclenche le menu */}
             <button 
