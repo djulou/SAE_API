@@ -245,6 +245,7 @@ button:focus-visible {
 .blind-test-header h2 {
   margin: 0;
   font-size: clamp(1.8rem, 2.4vw, 2.4rem);
+  color: var(--color-text);
 }
 
 .blind-test-header p {
@@ -305,7 +306,7 @@ button:focus-visible {
 
 .choice-button.selected {
   background: linear-gradient(180deg, rgba(245, 158, 11, 0.18), rgba(245, 158, 11, 0.08));
-  color: var(--color-bg);
+  color: var(--color-text);
   border-color: var(--color-primary);
   box-shadow: 0 12px 24px rgba(245, 158, 11, 0.18);
 }
@@ -342,6 +343,7 @@ button:focus-visible {
   margin: 0 0 8px;
   font-size: 1.05rem;
   font-weight: 700;
+  color: var(--color-text);
 }
 
 .result-subtitle {
@@ -368,6 +370,7 @@ button:focus-visible {
 .blind-test-list h3 {
   margin: 0 0 12px;
   font-size: 1.1rem;
+  color: var(--color-text);
 }
 
 .blind-test-list ul {
@@ -383,6 +386,7 @@ button:focus-visible {
   border-radius: var(--radius-md);
   background: rgba(10, 12, 16, 0.72);
   border: 1px solid rgba(255, 255, 255, 0.06);
+  color: var(--color-text);
 }
 
 .blind-test-config {
@@ -399,6 +403,7 @@ button:focus-visible {
 
 .config-field label {
   font-weight: 700;
+  color: var(--color-text);
 }
 
 .config-field input,
@@ -538,6 +543,7 @@ button:focus-visible {
 .blind-test-list h3 {
   margin: 0 0 12px;
   font-size: 1.2rem;
+  color: var(--color-text);
 }
 
 .blind-test-list ul {
@@ -549,6 +555,7 @@ button:focus-visible {
 .blind-test-list li {
   padding: 8px 0;
   border-bottom: 1px solid var(--color-border);
+  color: var(--color-text);
 }
 
 .blind-test-list li:last-child {
